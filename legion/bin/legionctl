@@ -25,7 +25,7 @@ import os
 import argparse
 import logging
 
-from legion.serving.pyserve import serve_model
+from toolchains.python_closure.python_closure.serving.pyserve import serve_model
 from legion.edi.deploy import \
     build_model, \
     deploy_model, undeploy_model, inspect, \

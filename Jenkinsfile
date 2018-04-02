@@ -2,6 +2,7 @@ node {
     def rootCommit
     def baseVersion
     def localVersion
+    def toolchains = []
 
     try {
         stage('Checkout GIT'){
@@ -42,7 +43,7 @@ node {
                 println('Skipped due to BuildNewJenkinsPlugin property')
             }
         }
-        stage('Build Python packages') {
+        stage('Build base Python packages') {
             sh '''
 			cd legion_test
     		../.venv/bin/python3 setup.py sdist
@@ -90,6 +91,27 @@ node {
     		../.venv/bin/python3 setup.py develop
     		cd -
     		"""
+        }
+        stage('Build toolchains'){
+
+            toolchains = new File('toolchains').traverse(type: groovy.io.FileType.DIRECTORIES, maxDepth: 0)
+
+            print(toolchains)
+
+            for (toolchain in toolchains){
+                toolchainFolder = "toolchains/${toolchain}"
+
+                sh """
+                cd ${toolchainFolder}
+                ../.venv/bin/python3 setup.py sdist
+                ../.venv/bin/python3 setup.py bdist_wheel
+                ../.venv/bin/python3 setup.py develop
+                cd -
+                """
+
+                def version = sh returnStdout: true, script: '.venv/bin/update_version_id --extended-output legion/legion/version.py'
+                print("Detected toolchain ${toolchain} version:\n" + version)
+            }
         }
         stage('Build docs'){
             fullBuildNumber = env.BUILD_NUMBER

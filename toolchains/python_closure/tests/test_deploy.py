@@ -23,6 +23,9 @@ try:
 except ImportError:
     from legion_test_utils import ModelTestDeployment, patch_environ, get_latest_distribution
     from legion_test_models import create_simple_summation_model_by_df
+except SystemError:
+    from legion_test_utils import ModelTestDeployment, patch_environ, get_latest_distribution
+    from legion_test_models import create_simple_summation_model_by_df
 
 import legion.config
 import legion.containers.docker

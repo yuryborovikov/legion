@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 #    Copyright 2017 EPAM Systems
 #
@@ -15,19 +14,6 @@
 #    limitations under the License.
 #
 """
-Entry point for WSGI server
-Example of usage: gunicorn legion.wsgi:application -k sync
+Version file
 """
-
-try:
-    import docker_bootup
-except ImportError:
-    pass
-
-from legion.logging import redirect_to_stdout, set_log_level
-from legion.serving.pyserve import init_application
-
-set_log_level()
-redirect_to_stdout()
-
-application = init_application()
+__version__ = '0.5.6'

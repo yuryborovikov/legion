@@ -166,25 +166,25 @@ class GrafanaClient:
         self._query('/api/dashboards/db', payload, 'POST')
 
 
-def build_client(args):
+def build_client(args=None):
     """
     Build Grafana client from ENV and from command line arguments
 
     :param args: command arguments
-    :type args: :py:class:`argparse.Namespace`
+    :type args: :py:class:`argparse.Namespace` or None
     :return: :py:class:`legion.grafana.GrafanaClient`
     """
     host = os.environ.get(*legion.config.GRAFANA_URL)
     user = os.environ.get(*legion.config.GRAFANA_USER)
     password = os.environ.get(*legion.config.GRAFANA_PASSWORD)
 
-    if args.grafana_server:
+    if args and args.grafana_server:
         host = args.grafana_server
 
-    if args.grafana_user:
+    if args and args.grafana_user:
         user = args.grafana_user
 
-    if args.grafana_password:
+    if args and args.grafana_password:
         password = args.grafana_password
 
     client = GrafanaClient(host, user, password)

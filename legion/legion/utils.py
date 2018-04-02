@@ -27,21 +27,23 @@ import tempfile
 
 import legion.config
 
-import docker
 import requests
 import requests.auth
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 
-def render_template(template_name, values=None):
+def render_template(template_name, values=None, package_name=None):
     """
     Render template with parameters
     :param template_name: name of template without path (all templates should be placed in legion.templates directory)
     :param values: dict template variables or None
+    :param package_name: name of package to search templates or None
     :return: str rendered template
     """
+    target_package_name = package_name if package_name else __name__
+
     env = Environment(
-        loader=PackageLoader(__name__, 'templates'),
+        loader=PackageLoader(target_package_name, 'templates'),
         autoescape=select_autoescape(['tmpl'])
     )
 

@@ -24,7 +24,6 @@ except ImportError:
     from legion_test_utils import patch_environ
 import legion.config
 import legion.model.client
-import legion.serving.pyserve as pyserve
 
 
 class TestModelClient(unittest2.TestCase):

@@ -21,6 +21,7 @@ import logging
 import os
 import time
 import re
+import importlib
 
 import docker
 import docker.errors
@@ -35,7 +36,6 @@ import legion.utils
 from legion.utils import Colors, ExternalFileReader
 
 LOGGER = logging.getLogger('deploy')
-VALID_SERVING_WORKERS = legion.containers.docker.VALID_SERVING_WORKERS
 
 INSPECT_FORMAT_COLORIZED = 'colorized'
 INSPECT_FORMAT_TABULAR = 'column'
@@ -61,33 +61,48 @@ def build_model(args):
             if args.model_id:
                 model_id = args.model_id
 
-        if not model_id:
-            raise Exception('Cannot get model id (not setted in container and not setted in arguments)')
+            if not model_id:
+                raise Exception('Cannot get model id (not setted in container and not setted in arguments)')
 
-        image_labels = legion.containers.docker.generate_docker_labels_for_image(external_reader.path, model_id, args)
+            image_labels = legion.containers.docker.generate_docker_labels_for_image(external_reader.path, model_id, args)
 
-        base_docker_image = args.base_docker_image
-        if not base_docker_image:
-            base_docker_image = 'legion/base-python-image:latest'
+            try:
+                class_module = importlib.import_module(container['model.module'])
+                model_class = getattr(class_module, container['model.class'])
+            except AttributeError as attribute_exception:
+                raise Exception('Cannot load Python class {} for module {} (model: {}): {}'.format(
+                    container['model.class'],
+                    container['model.module'],
+                    container['model.id'],
+                    attribute_exception,
+                ))
+            except ImportError as import_exception:
+                raise Exception('Cannot import Python module {} for model {}: {}'.format(
+                    container['model.module'],
+                    container['model.id'],
+                    import_exception,
+                ))
 
-        print('Building docker image...')
-        image = legion.containers.docker.build_docker_image(
-            client,
-            base_docker_image,
-            model_id,
-            external_reader.path,
-            image_labels,
-            args.python_package,
-            args.python_package_version,
-            args.python_repository,
-            args.docker_image_tag,
-            args.serving
-        )
+            base_docker_image = args.base_docker_image
+            if not base_docker_image:
+                base_docker_image = 'legion/base-python-image:latest'
 
-        LOGGER.info('Built image: %s with python package: %s', image, args.python_package)
-        print('Built image: %s with python package: %s for model %s' % (image, args.python_package, model_id))
+            print('Building docker image for class {} in module {}...'
+                  .format(model_class.__name__, model_class.__module__))
+            image = legion.containers.docker.build_docker_image(
+                client,
+                base_docker_image,
+                model_id,
+                external_reader.path,
+                image_labels,
+                model_class,
+                args
+            )
 
-        legion.utils.send_header_to_stderr(legion.containers.headers.IMAGE_TAG_LOCAL, image.id)
+            LOGGER.info('Built image: %s with python package: %s', image, args.python_package)
+            print('Built image: %s with python package: %s for model %s' % (image, args.python_package, model_id))
+
+            legion.utils.send_header_to_stderr(legion.containers.headers.IMAGE_TAG_LOCAL, image.id)
 
         if args.push_to_registry:
             external_image_name = args.push_to_registry

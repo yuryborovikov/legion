@@ -21,7 +21,6 @@ import tempfile
 from unittest.mock import patch
 
 import legion.config
-import legion.io
 import legion.utils as utils
 import requests.auth
 import unittest2

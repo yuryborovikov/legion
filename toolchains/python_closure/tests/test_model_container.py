@@ -21,6 +21,9 @@ import legion.io
 import legion.model
 import legion.model.model_id
 import legion.model.types
+
+import legion_python_closure.io
+
 import numpy
 import pandas
 import unittest2
@@ -48,8 +51,10 @@ class TestModelContainer(unittest2.TestCase):
         model_id = 'demo-model'
 
         try:
+            legion.model.model_id._model_id = None
+
             legion.model.model_id.init(model_id)
-            legion.io.export_df(apply, df, filename=path, prepare_func=prepare, version=version)
+            legion_python_closure.io.export_df(apply, df, filename=path, prepare_func=prepare, version=version)
 
             self.assertTrue(os.path.exists(path), 'File not exists')
 

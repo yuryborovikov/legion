@@ -29,7 +29,6 @@ import legion.io
 import legion.utils
 
 LOGGER = logging.getLogger('docker')
-VALID_SERVING_WORKERS = 'uwsgi', 'gunicorn'
 
 
 def build_docker_client(args=None):
@@ -45,8 +44,7 @@ def build_docker_client(args=None):
 
 
 def build_docker_image(client, base_image, model_id, model_file, labels,
-                       python_package, python_package_version, python_repository,
-                       docker_image_tag, serving):
+                       model_class, args):
     """
     Build docker image from base image and model file
 
@@ -60,6 +58,11 @@ def build_docker_image(client, base_image, model_id, model_file, labels,
     :type model_file: str
     :param labels: image labels
     :type labels: dict[str, str]
+    :param model_class: #TODO ADD
+    :type model_class: #TODO ADD
+    :param args: command arguments
+    :type args: :py:class:`argparse.Namespace`
+
     :param python_package: path to wheel or None for install from PIP
     :type python_package: str or None
     :param python_package_version: custom package version
@@ -72,6 +75,12 @@ def build_docker_image(client, base_image, model_id, model_file, labels,
     :type serving: str
     :return: docker.models.Image
     """
+
+    python_package = args.python_package
+    python_package_version = args.python_package_version
+    python_repository = args.python_repository
+    docker_image_tag = args.docker_image_tag
+
     with legion.utils.TemporaryFolder('legion-docker-build') as temp_directory:
         folder, model_filename = os.path.split(model_file)
 
@@ -94,36 +103,19 @@ def build_docker_image(client, base_image, model_id, model_file, labels,
             if python_repository:
                 source_repository = '--extra-index-url %s' % python_repository
 
-        if serving not in VALID_SERVING_WORKERS:
-            raise Exception('Unknown serving parameter. Should be one of %s' % (', '.join(VALID_SERVING_WORKERS),))
-
-        # Copy additional payload from templates / docker_files / <serving>
-        additional_directory = os.path.join(
-            os.path.dirname(__file__), '..', 'templates', 'docker_files', serving)
-
-        for file in os.listdir(additional_directory):
-            path = os.path.join(additional_directory, file)
-            if os.path.isfile(path) and file != 'Dockerfile':
-                shutil.copy2(path, os.path.join(temp_directory.path, file))
-
-        additional_docker_file = os.path.join(additional_directory, 'Dockerfile')
-        with open(additional_docker_file, 'r') as additional_docker_file_stream:
-            additional_docker_file_content = additional_docker_file_stream.read()
-
-        docker_file_content = legion.utils.render_template('Dockerfile.tmpl', {
-            'ADDITIONAL_DOCKER_CONTENT': additional_docker_file_content,
+        base_data = {
             'DOCKER_BASE_IMAGE': base_image,
             'MODEL_ID': model_id,
             'MODEL_FILE': model_filename,
             'PIP_INSTALL_TARGET': install_target,
             'PIP_REPOSITORY': source_repository,
             'PIP_CUSTOM_TARGET': wheel_target
-        })
+        }
+
+        builder = model_class.get_builder()
+        builder(temp_directory.path, base_data, args)
 
         labels = {k: str(v) if v else None for (k, v) in labels.items()}
-
-        with open(os.path.join(temp_directory.path, 'Dockerfile'), 'w') as file:
-            file.write(docker_file_content)
 
         LOGGER.info('Building docker image in folder %s' % (temp_directory.path))
         try:

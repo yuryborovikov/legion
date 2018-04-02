@@ -18,8 +18,9 @@ Test models
 """
 
 import legion.io
-import legion.model
+import legion_python_closure.model
 import legion.model.types as types
+
 import numpy
 import pandas
 import unittest2
@@ -49,7 +50,7 @@ class TestScipyModel(unittest2.TestCase):
             'd_str': 'what?'
         }])
 
-        s = legion.model.model.ScipyModel(
+        s = legion_python_closure.model.ScipyModel(
             apply,
             prepare,
             legion.io._get_column_types(df),
@@ -95,7 +96,7 @@ class TestScipyModel(unittest2.TestCase):
             assert x['d_str'].dtype in [numpy.str, numpy.object]
             assert x['excessive'].dtype == numpy.bool_
 
-        s = legion.model.model.ScipyModel(
+        s = legion_python_closure.model.ScipyModel(
             apply,
             lambda x: x,
             column_types=legion.io._get_column_types((df, {'excessive': CustomBoolObject()})),

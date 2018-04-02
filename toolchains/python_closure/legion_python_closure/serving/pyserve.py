@@ -20,26 +20,22 @@ Flask app
 import logging
 import os
 
-import consul
 import legion.config
 import legion.external.grafana
 import legion.http
 import legion.io
-import legion.model.model as mlmodel
 import legion.utils as utils
+import legion.model.urls
+from legion.external.consul import register_model_service
+
 from flask import Flask, Blueprint, request, jsonify, redirect
 from flask import current_app as app
 
 LOGGER = logging.getLogger(__name__)
 blueprint = Blueprint('pyserve', __name__)
 
-SERVE_ROOT = '/'
-SERVE_INFO = '/api/model/{model_id}/info'
-SERVE_INVOKE = '/api/model/{model_id}/invoke'
-SERVE_HEALTH_CHECK = '/healthcheck'
 
-
-@blueprint.route(SERVE_ROOT)
+@blueprint.route(legion.model.urls.SERVE_ROOT)
 def root():
     """
     Return static file for root query
@@ -49,7 +45,7 @@ def root():
     return redirect('index.html')
 
 
-@blueprint.route(SERVE_INFO.format(model_id='<model_id>'))
+@blueprint.route(legion.model.urls.SERVE_INFO.format(model_id='<model_id>'))
 def model_info(model_id):
     """
     Get model description
@@ -66,7 +62,7 @@ def model_info(model_id):
     return jsonify(model.description)
 
 
-@blueprint.route(SERVE_INVOKE.format(model_id='<model_id>'), methods=['POST', 'GET'])
+@blueprint.route(legion.model.urls.SERVE_INVOKE.format(model_id='<model_id>'), methods=['POST', 'GET'])
 def model_invoke(model_id):
     """
     Call model for calculation
@@ -87,7 +83,7 @@ def model_invoke(model_id):
     return legion.http.prepare_response(output)
 
 
-@blueprint.route(SERVE_HEALTH_CHECK)
+@blueprint.route(legion.model.urls.SERVE_HEALTH_CHECK)
 def healthcheck():
     """
     Check that model is OK
@@ -129,34 +125,6 @@ def create_application():
     return application
 
 
-def register_service(application):
-    """
-    Register application in Consul
-
-    :param application: Flask application instance
-    :type application: :py:class:`Flask.app`
-    :return: None
-    """
-    consul_host = application.config['CONSUL_ADDR']
-    consul_port = int(application.config['CONSUL_PORT'])
-    client = consul.Consul(host=consul_host, port=consul_port)
-
-    service = application.config['MODEL_ID']
-
-    addr = application.config['LEGION_ADDR']
-    port = int(application.config['LEGION_PORT'])
-
-    print('Registering model %s located at %s:%d on http://%s:%s' % (service, addr, port, consul_host, consul_port))
-
-    client.agent.service.register(
-        service,
-        address=addr,
-        port=port,
-        tags=['legion', 'model'],
-        check=consul.Check.http('http://%s:%d/healthcheck' % (addr, port), '2s')
-    )
-
-
 def register_dashboard(application):
     """
     Register application in Grafana (create dashboard)
@@ -165,12 +133,7 @@ def register_dashboard(application):
     :type application: :py:class:`Flask.app`
     :return: None
     """
-    host = os.environ.get(*legion.config.GRAFANA_URL)
-    user = os.environ.get(*legion.config.GRAFANA_USER)
-    password = os.environ.get(*legion.config.GRAFANA_PASSWORD)
-
-    print('Creating Grafana client for host: %s, user: %s, password: %s' % (host, user, '*' * len(password)))
-    client = legion.external.grafana.GrafanaClient(host, user, password)
+    client = legion.external.grafana.build_client()
     client.create_dashboard_for_model(application.config['MODEL_ID'])
 
 
@@ -198,7 +161,9 @@ def init_application(args=None):
 
     # Register instance on Consul
     if application.config['REGISTER_ON_CONSUL']:
-        register_service(application)
+        register_model_service(application.config['CONSUL_ADDR'], int(application.config['CONSUL_PORT']),
+                               application.config['MODEL_ID'],
+                               application.config['LEGION_ADDR'], int(application.config['LEGION_PORT']))
         logging.info('Consul consensus achieved')
     else:
         logging.info('Registration on Consul has been skipped due to configuration')

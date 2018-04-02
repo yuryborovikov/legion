@@ -26,7 +26,7 @@ except ImportError:
 
 from aiohttp import web
 from aiohttp_wsgi import WSGIHandler
-from legion.serving.pyserve import init_application
+from legion_python_closure.serving.pyserve import init_application
 
 
 def make_aiohttp_app():

@@ -9,7 +9,8 @@ import legion.config
 import legion.containers.docker
 import legion.io
 import legion.model.client
-import legion.serving.pyserve as pyserve
+import legion_python_closure.serving.pyserve as pyserve
+import legion_python_closure.builder
 import legion.model.model_id
 from legion.model import ModelClient
 from legion.utils import remove_directory
@@ -171,7 +172,7 @@ class ModelTestDeployment:
                 python_package_version=None,
                 python_repository=None,
                 docker_image_tag=None,
-                serving=deploy.VALID_SERVING_WORKERS[1],
+                serving=legion_python_closure.builder.VALID_SERVING_WORKERS[1],
                 push_to_registry=None
             )
             self.image = deploy.build_model(args)

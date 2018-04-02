@@ -18,6 +18,8 @@ from __future__ import print_function
 import legion.io
 import legion.model
 
+import legion_python_closure.io
+
 import pandas
 
 
@@ -32,10 +34,10 @@ def create_simple_summation_model_by_df(path, version):
         'b': 1,
     }])
 
-    return legion.io.export_df(apply,
-                               df,
-                               filename=path,
-                               version=version)
+    return legion_python_closure.io.export_df(apply,
+                                              df,
+                                              filename=path,
+                                              version=version)
 
 
 def create_simple_summation_model_by_df_with_prepare(path, version):
@@ -53,10 +55,10 @@ def create_simple_summation_model_by_df_with_prepare(path, version):
         'b': 1,
     }])
 
-    return legion.io.export_df(apply,
-                               df,
-                               filename=path,
-                               version=version)
+    return legion_python_closure.io.export_df(apply,
+                                              df,
+                                              filename=path,
+                                              version=version)
 
 
 def create_simple_summation_model_by_types(path, version):
@@ -68,10 +70,10 @@ def create_simple_summation_model_by_types(path, version):
         'b': legion.model.int32,
     }
 
-    return legion.io.export(apply,
-                            parameters,
-                            filename=path,
-                            version=version)
+    return legion_python_closure.io.export(apply,
+                                           parameters,
+                                           filename=path,
+                                           version=version)
 
 
 def create_simple_summation_model_untyped(path, version):
@@ -80,9 +82,9 @@ def create_simple_summation_model_untyped(path, version):
 
         return {'keys': ','.join(keys), 'sum': sum(int(val) for val in x.values())}
 
-    return legion.io.export_untyped(apply,
-                                    filename=path,
-                                    version=version)
+    return legion_python_closure.io.export_untyped(apply,
+                                                   filename=path,
+                                                   version=version)
 
 
 def create_simple_summation_model_lists(path, version):
@@ -94,9 +96,9 @@ def create_simple_summation_model_lists(path, version):
 
         return {'best': best, 'worth': worth}
 
-    return legion.io.export_untyped(apply,
-                                    filename=path,
-                                    version=version)
+    return legion_python_closure.io.export_untyped(apply,
+                                                   filename=path,
+                                                   version=version)
 
 
 def create_simple_summation_model_lists_with_files_info(path, version):
@@ -112,6 +114,6 @@ def create_simple_summation_model_lists_with_files_info(path, version):
 
         return {'best': best, 'worth': worth}
 
-    return legion.io.export_untyped(apply,
-                                    filename=path,
-                                    version=version)
+    return legion_python_closure.io.export_untyped(apply,
+                                                   filename=path,
+                                                   version=version)
