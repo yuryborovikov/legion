@@ -15,10 +15,9 @@
 #
 import os
 
-from legion.model import ModelClient, load_image
 import legion.config
-
 import unittest2
+from legion_core.model import ModelClient, load_image
 
 
 class BasicTest(unittest2.TestCase):

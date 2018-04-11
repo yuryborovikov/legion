@@ -22,8 +22,8 @@ import time
 from enum import Enum
 
 import legion.config
-from legion.model.model_id import get_model_id, init
 from legion.utils import normalize_name
+from legion_core.model.model_id import get_model_id, init
 
 
 class Metric(Enum):

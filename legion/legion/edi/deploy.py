@@ -17,22 +17,23 @@
 Deploy logic for legion
 """
 
+import importlib
 import logging
 import os
-import time
 import re
-import importlib
+import time
 
 import docker
 import docker.errors
+import legion_core.headers
 import legion.config
 import legion.containers.docker
-import legion.containers.headers
 import legion.containers.k8s
 import legion.external.edi
 import legion.external.grafana
 import legion.io
 import legion.utils
+import legion.extensions
 from legion.utils import Colors, ExternalFileReader
 
 LOGGER = logging.getLogger('deploy')
@@ -64,45 +65,10 @@ def build_model(args):
             if not model_id:
                 raise Exception('Cannot get model id (not setted in container and not setted in arguments)')
 
-            image_labels = legion.containers.docker.generate_docker_labels_for_image(external_reader.path, model_id, args)
+            builder = legion.extensions.search_builder_by_class(container['model.class'])
+            image = builder(args, model_id, external_reader, client)
 
-            try:
-                class_module = importlib.import_module(container['model.module'])
-                model_class = getattr(class_module, container['model.class'])
-            except AttributeError as attribute_exception:
-                raise Exception('Cannot load Python class {} for module {} (model: {}): {}'.format(
-                    container['model.class'],
-                    container['model.module'],
-                    container['model.id'],
-                    attribute_exception,
-                ))
-            except ImportError as import_exception:
-                raise Exception('Cannot import Python module {} for model {}: {}'.format(
-                    container['model.module'],
-                    container['model.id'],
-                    import_exception,
-                ))
-
-            base_docker_image = args.base_docker_image
-            if not base_docker_image:
-                base_docker_image = 'legion/base-python-image:latest'
-
-            print('Building docker image for class {} in module {}...'
-                  .format(model_class.__name__, model_class.__module__))
-            image = legion.containers.docker.build_docker_image(
-                client,
-                base_docker_image,
-                model_id,
-                external_reader.path,
-                image_labels,
-                model_class,
-                args
-            )
-
-            LOGGER.info('Built image: %s with python package: %s', image, args.python_package)
-            print('Built image: %s with python package: %s for model %s' % (image, args.python_package, model_id))
-
-            legion.utils.send_header_to_stderr(legion.containers.headers.IMAGE_TAG_LOCAL, image.id)
+            legion.utils.send_header_to_stderr(legion_core.headers.IMAGE_TAG_LOCAL, image.id)
 
         if args.push_to_registry:
             external_image_name = args.push_to_registry
@@ -139,7 +105,7 @@ def build_model(args):
             client.images.push(image_and_registry, tag=version, auth_config=auth_config)
             print('Successfully pushed image %s:%s' % (image_and_registry, version))
 
-            legion.utils.send_header_to_stderr(legion.containers.headers.IMAGE_TAG_EXTERNAL, image_and_registry)
+            legion.utils.send_header_to_stderr(legion_core.headers.IMAGE_TAG_EXTERNAL, image_and_registry)
 
         return image
 

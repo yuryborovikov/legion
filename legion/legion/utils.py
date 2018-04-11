@@ -18,14 +18,13 @@ legion utils functional
 """
 
 import os
-import re
 import shutil
 import socket
 import subprocess
-import sys
 import tempfile
 
 import legion.config
+from legion_core.utils import normalize_name, send_header_to_stderr
 
 import requests
 import requests.auth
@@ -203,19 +202,6 @@ class Colors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
-
-
-def normalize_name(name):
-    """
-    Normalize name
-
-    :param name: name to normalize
-    :type name: str
-    :return: str -- normalized name
-    """
-    for char in ' ', '_', '+':
-        name = name.replace(char, '-')
-    return re.sub('[^a-zA-Z0-9\-\.]', '', name)
 
 
 def is_local_resource(path):
@@ -431,20 +417,6 @@ def get_git_revision(file, use_short_hash=True):
         revision = revision.decode('utf-8')
 
     return revision.strip()
-
-
-def send_header_to_stderr(header, value):
-    """
-    Send header with specific prefix to stderr
-
-    :param header: name of header (without common prefix)
-    :type header: str
-    :param value: value of header
-    :type value: str
-    :return: None
-    """
-    message = 'X-Legion-%s:%s' % (header, value)
-    print(message, file=sys.__stderr__, flush=True)
 
 
 def string_to_bool(value):

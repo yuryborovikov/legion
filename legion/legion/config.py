@@ -16,6 +16,7 @@
 """
 legion env names
 """
+from legion_core.config import MODEL_ID, MODEL_SERVER_URL
 
 BUILD_NUMBER = 'BUILD_NUMBER', 0
 BUILD_ID = 'BUILD_ID', None
@@ -28,8 +29,6 @@ GIT_BRANCH = 'GIT_BRANCH', None
 JOB_NAME = 'JOB_NAME', None
 NODE_NAME = 'NODE_NAME', None
 
-MODEL_SERVER_URL = 'MODEL_SERVER_URL', 'http://edge'
-MODEL_ID = 'MODEL_ID', None
 MODEL_FILE = 'MODEL_FILE', None
 
 STATSD_HOST = 'STATSD_HOST', 'graphite'

@@ -20,13 +20,6 @@ import os
 import os.path
 import typing
 
-import legion
-import legion.containers.docker
-import legion.containers.headers
-import legion.config
-import legion.external.grafana
-from legion.model import ModelClient
-
 import docker
 import docker.errors
 import kubernetes
@@ -36,7 +29,14 @@ import kubernetes.config.config_exception
 import urllib3
 import urllib3.exceptions
 import yaml
+
+import legion
+import legion.config
+import legion.containers.docker
+import legion.external.grafana
 from legion.utils import normalize_name
+from legion_core.model import ModelClient
+import legion_core.headers
 
 ModelDeploymentDescription = typing.NamedTuple('ModelDeploymentDescription', [
     ('status', str),
@@ -135,10 +135,10 @@ def find_model_deployment(model_id, namespace='default'):
     extension_api = kubernetes.client.ExtensionsV1beta1Api(client)
     all_deployments = extension_api.list_namespaced_deployment(namespace)
 
-    type_label_name = normalize_name(legion.containers.headers.DOMAIN_CONTAINER_TYPE)
+    type_label_name = normalize_name(legion_core.headers.DOMAIN_CONTAINER_TYPE)
     type_label_value = 'model'
 
-    model_id_name = normalize_name(legion.containers.headers.DOMAIN_MODEL_ID)
+    model_id_name = normalize_name(legion_core.headers.DOMAIN_MODEL_ID)
     model_id_value = normalize_name(model_id)
 
     for deployment in all_deployments.items:
@@ -165,7 +165,7 @@ def find_all_models_deployments(namespace='default'):
     else:
         all_deployments = extension_api.list_deployment_for_all_namespaces()
 
-    type_label_name = normalize_name(legion.containers.headers.DOMAIN_CONTAINER_TYPE)
+    type_label_name = normalize_name(legion_core.headers.DOMAIN_CONTAINER_TYPE)
     type_label_value = 'model'
 
     model_deployments = [
@@ -340,10 +340,10 @@ def inspect(cluster_config, cluster_secrets, namespace=None):
         container_image = deployment.spec.template.spec.containers[0].image
 
         model_name = deployment.metadata.labels.get(
-            normalize_name(legion.containers.headers.DOMAIN_MODEL_ID), '?'
+            normalize_name(legion_core.headers.DOMAIN_MODEL_ID), '?'
         )
         model_version = deployment.metadata.labels.get(
-            normalize_name(legion.containers.headers.DOMAIN_MODEL_VERSION), '?'
+            normalize_name(legion_core.headers.DOMAIN_MODEL_VERSION), '?'
         )
 
         model_api_info = {
@@ -447,13 +447,13 @@ def get_meta_from_docker_image(image):
         docker_image = docker_client.images.pull(image)
 
     required_headers = [
-        legion.containers.headers.DOMAIN_MODEL_ID,
-        legion.containers.headers.DOMAIN_MODEL_VERSION,
-        legion.containers.headers.DOMAIN_CONTAINER_TYPE
+        legion_core.headers.DOMAIN_MODEL_ID,
+        legion_core.headers.DOMAIN_MODEL_VERSION,
+        legion_core.headers.DOMAIN_CONTAINER_TYPE
     ]
 
-    model_id = docker_image.labels[legion.containers.headers.DOMAIN_MODEL_ID]
-    model_version = docker_image.labels[legion.containers.headers.DOMAIN_MODEL_VERSION]
+    model_id = docker_image.labels[legion_core.headers.DOMAIN_MODEL_ID]
+    model_version = docker_image.labels[legion_core.headers.DOMAIN_MODEL_VERSION]
 
     if any(header not in docker_image.labels for header in required_headers):
         raise Exception('Missed on of %s labels. Available labels: %s' % (

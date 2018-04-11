@@ -19,15 +19,15 @@ import os
 import time
 from unittest.mock import patch
 
+import legion_core.model.model_id
 import legion.config as env
 import legion.metrics as metrics
-import legion.model.model_id
 import unittest2
 
 
 def _reset_model_id():
-    legion.model.model_id._model_id = None
-    legion.model.model_id._model_initialized_from_function = False
+    legion_core.model.model_id._model_id = None
+    legion_core.model.model_id._model_initialized_from_function = False
     if env.MODEL_ID[0] in os.environ:
         os.unsetenv(env.MODEL_ID[0])
         del os.environ[env.MODEL_ID[0]]
@@ -42,7 +42,7 @@ class MetricContent:
 
     def __enter__(self):
         if self._init_at_startup:
-            legion.model.model_id.init(self._model)
+            legion_core.model.model_id.init(self._model)
         os.environ[env.BUILD_NUMBER[0]] = str(self._build)
         return self
 
@@ -73,7 +73,7 @@ class TestMetrics(unittest2.TestCase):
             self.assertEqual(metrics.get_build_number(), build_number)
 
     def test_model_id_deduction_exception(self):
-        self.assertEqual(legion.model.model_id._model_id, None, 'Model ID not empty')
+        self.assertEqual(legion_core.model.model_id._model_id, None, 'Model ID not empty')
         self.assertEqual(os.getenv(*env.MODEL_ID), None, 'Model ID ENV not empty')
         with self.assertRaises(Exception) as context:
             metrics.send_metric(metrics.Metric.TEST_ACCURACY, 30.0)
@@ -85,7 +85,7 @@ class TestMetrics(unittest2.TestCase):
         value = 30.0
         host, port, namespace = metrics.get_metric_endpoint()
         os.environ[env.MODEL_ID[0]] = str(model_id)
-        with patch('legion.model.model_id.send_model_id') as send_model_id_mock:
+        with patch('legion_core.model.model_id.send_model_id') as send_model_id_mock:
             with MetricContent(model_id, build_number, init_at_startup=False):
                 self.assertEqual(len(send_model_id_mock.call_args_list), 0)
                 with patch('legion.metrics.send_tcp') as send_tcp_mock:
@@ -120,7 +120,7 @@ class TestMetrics(unittest2.TestCase):
 
         _reset_model_id()
 
-        legion.model.model_id.init(model_id)
+        legion_core.model.model_id.init(model_id)
         os.environ[env.BUILD_NUMBER[0]] = str(build_number)
 
         self.assertEqual(metrics.get_model_id(), model_id)

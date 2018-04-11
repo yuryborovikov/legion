@@ -1,16 +1,14 @@
-from surprise import Dataset, Reader
-from surprise import KNNBasic, SVD
-from surprise.builtin_datasets import download_builtin_dataset
-
-from collections import defaultdict
-import pandas as pd
-import numpy as np
-import os, io
-
-from legion.metrics import send_metric
-import legion.model
-import legion.io
+import io
+import os
 import time
+from collections import defaultdict
+
+import legion.io
+import pandas as pd
+from legion.metrics import send_metric
+from surprise import Dataset, Reader
+from surprise import KNNBasic
+from surprise.builtin_datasets import download_builtin_dataset
 
 use_built_in = True
 legion.model.init('movie-lens')

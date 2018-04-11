@@ -1,0 +1,6 @@
+graft legion_pyserve/model
+graft legion_pyserve/serving
+graft legion_pyserve/static
+graft legion_pyserve/templates
+recursive-include requirements *.txt
+

@@ -13,7 +13,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-from legion.model import ModelClient
+from legion_core.model import ModelClient
 
 from locust import HttpLocust, task, TaskSet
 

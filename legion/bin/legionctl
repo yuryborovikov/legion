@@ -25,12 +25,13 @@ import os
 import argparse
 import logging
 
-from toolchains.python_closure.python_closure.serving.pyserve import serve_model
+
+from legion.extensions import list_extensions_cmd
 from legion.edi.deploy import \
     build_model, \
     deploy_model, undeploy_model, inspect, \
     deploy_kubernetes, undeploy_kubernetes, scale_kubernetes, inspect_kubernetes, \
-    VALID_INSPECT_FORMATS, VALID_SERVING_WORKERS
+    VALID_INSPECT_FORMATS
 import legion.utils
 
 ROOT_LOGGER = logging.getLogger()
@@ -51,8 +52,8 @@ if __name__ == '__main__':
     build_parser.add_argument('--model-type',
                               type=str, help='legion-python, tensorflow, mleap',
                               default='legion-python')
-    build_parser.add_argument('--python-package',
-                              type=str, help='path to legion-python package wheel')
+    build_parser.add_argument('--build-packages-from-source',
+                              action='store_true', help='deploy after build')
     build_parser.add_argument('--python-package-version',
                               type=str, help='version of python package')
     build_parser.add_argument('--python-repository',
@@ -65,9 +66,6 @@ if __name__ == '__main__':
                               type=str, help='docker registry address')
     build_parser.add_argument('--with-deploy',
                               action='store_true', help='deploy after build')
-    build_parser.add_argument('--serving',
-                              default=VALID_SERVING_WORKERS[0],
-                              type=str, help='serving worker: %s' % ', '.join(VALID_SERVING_WORKERS))
     build_parser.set_defaults(func=build_model)
 
     deploy_parser = subparsers.add_parser('deploy-local',
@@ -185,27 +183,9 @@ if __name__ == '__main__':
                                      action='store_true', help='ignore if cannot found pod')
     undeploy_k8s_parser.set_defaults(func=undeploy_kubernetes)
 
-    # --------- SERVING SECTION -----------
-    pyserve_parser = subparsers.add_parser('pyserve', description='serve a python model')
-    pyserve_parser.add_argument('--model_file',
-                                type=str)
-    pyserve_parser.add_argument('--model-id',
-                                type=str)
-    pyserve_parser.add_argument('--consul-addr',
-                                type=str, help='Consul Agent IP address')
-    pyserve_parser.add_argument('--consul-port',
-                                type=int, help='Consul Agent port')
-    pyserve_parser.add_argument('--legion-addr',
-                                type=str)
-    pyserve_parser.add_argument('--legion-port',
-                                type=int)
-    pyserve_parser.add_argument('--debug',
-                                type=legion.utils.string_to_bool)
-    pyserve_parser.add_argument('--register-on-consul',
-                                type=legion.utils.string_to_bool)
-    pyserve_parser.add_argument('--legion-autodiscover',
-                                type=legion.utils.string_to_bool)
-    pyserve_parser.set_defaults(func=serve_model)
+    # --------- LOCAL SECTION -----------
+    extensions_parser = subparsers.add_parser('extensions', description='list available extensions')
+    extensions_parser.set_defaults(func=list_extensions_cmd)
 
     # --------- END OF SECTIONS -----------
     args = parser.parse_args(sys.argv[1:])

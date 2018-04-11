@@ -24,14 +24,14 @@ import os
 import zipfile
 
 import dill
-import legion
-import legion.containers.headers
-import legion.config
-import legion.model.types
-from legion.model.model_id import get_model_id, is_model_id_auto_deduced
-from legion.model.types import deduct_types_on_pandas_df
-from legion.utils import TemporaryFolder, get_git_revision, string_to_bool
 from pandas import DataFrame
+
+import legion
+import legion.config
+import legion_core.model.types
+from legion_core.model.types import deduct_types_on_pandas_df
+from legion.utils import TemporaryFolder, get_git_revision, string_to_bool
+from legion_core.model.model_id import get_model_id, is_model_id_auto_deduced
 
 
 def _get_column_types(param_types):
@@ -39,9 +39,9 @@ def _get_column_types(param_types):
     Build dict with ColumnInformation from param_types argument for export function
 
     :param param_types: pandas DF with custom dict or pandas DF.
-    Custom dict contains of column_name => legion.BaseType
+    Custom dict contains of column_name => legion_core.model.types.BaseType
     :type param_types tuple(:py:class:`pandas.DataFrame`, dict) or :py:class:`pandas.DataFrame`
-    :return: dict[str, :py:class:`legion.types.ColumnInformation`] -- column name => column information
+    :return: dict[str, :py:class:`legion_core.model.types.ColumnInformation`] -- column name => column information
     """
     pandas_df_sample = None
     custom_props = None
@@ -150,7 +150,7 @@ class ModelContainer:
         self['model.class'] = self._model.__class__.__name__
         self['model.module'] = self._model.__class__.__module__
         self['model.version'] = self._model.version
-        self['legion.version'] = legion.__version__
+        self['legion.version'] = legion_core.__version__
 
         self['jenkins.build_number'] = os.environ.get(*legion.config.BUILD_NUMBER)
         self['jenkins.build_id'] = os.environ.get(*legion.config.BUILD_ID)
@@ -340,8 +340,8 @@ def deduce_param_types(data_frame, optional_dictionary=None):
 
     :param data_frame: pandas DF
     :type data_frame: :py:class:`pandas.DataFrame`
-    :param optional_dictionary: custom dict contains of column_name => legion.types.BaseType
-    :type optional_dictionary: dict[str, :py:class:`legion.types.BaseType`]
+    :param optional_dictionary: custom dict contains of column_name => legion_core.model.types.BaseType
+    :type optional_dictionary: dict[str, :py:class:`legion_core.model.types.BaseType`]
     :return: dict[str, :py:class:`legion.types.ColumnInformation`]
     """
     if optional_dictionary:

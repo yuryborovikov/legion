@@ -18,6 +18,7 @@ import os
 import re
 
 PACKAGE_ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
+PACKAGE_NAME = 'legion_pyserve'
 
 
 def extract_requirements(filename):
@@ -46,16 +47,19 @@ def extract_version(filename):
             raise RuntimeError("Unable to find version string in %s." % (file_content,))
 
 
-setup(name='legion',
-      version=extract_version(os.path.join(PACKAGE_ROOT_PATH, 'legion_core', 'version.py')),
-      description='Legion',
-      url='http://github.com/epam/legion',
+setup(name='legion-toolchain-pyserve',
+      version=extract_version(os.path.join(PACKAGE_ROOT_PATH, PACKAGE_NAME, 'version.py')),
+      description='Legion toolchain for python closures',
+      url='http://github.com/akharlamov/legion-root',
       author='Alexey Kharlamov, Kirill Makhonin',
       author_email='alexey@kharlamov.biz, kirill@makhonin.biz',
       license='Apache v2',
-      packages=find_packages(exclude=['tests']),
+      packages=['legion_pyserve'],
+      classifiers=[
+          'Legion :: Extension',
+          'Legion :: Extension :: Package :: legion_pyserve'
+      ],
       include_package_data=True,
-      scripts=['bin/legionctl', 'bin/edi'],
       install_requires=extract_requirements(os.path.join(PACKAGE_ROOT_PATH, 'requirements', 'base.txt')),
       test_suite='nose.collector',
       tests_require=extract_requirements(os.path.join(PACKAGE_ROOT_PATH, 'requirements', 'test.txt')),

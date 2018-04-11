@@ -13,24 +13,25 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-import os
-import random
+from __future__ import print_function
 
-import legion.config
 import unittest2
-from legion_core.model import ModelClient
+from legion.extensions import get_available_toolchain_packages, get_toolchain_information
+
+import legion_pyserve.info
+
+PACKAGE_NAME = 'legion_pyserve'
 
 
-class BasicTest(unittest2.TestCase):
-    def setUp(self):
-        self._client = ModelClient(os.environ.get(*legion.config.MODEL_ID))
+class TestAddon(unittest2.TestCase):
+    def test_addon_available(self):
+        packages = get_available_toolchain_packages()
+        print('Found packages: {}'.format(','.join(packages)))
+        self.assertTrue(PACKAGE_NAME in packages)
 
-    def test_random_sum(self):
-        a = random.randint(0, 100)
-        b = random.randint(0, 100)
-        response = self._client.invoke(a=a, b=b)
-
-        self.assertEqual(response['result'], a + b, 'Wrong answer for a={} and b={}'.format(a, b))
+        package_detail = get_toolchain_information(PACKAGE_NAME)
+        self.assertEqual(package_detail.package_name, PACKAGE_NAME)
+        self.assertTupleEqual(package_detail.valid_classes, legion_pyserve.info.VALID_CLASSES)
 
 
 if __name__ == '__main__':

@@ -15,8 +15,7 @@
 #
 import os
 
-from legion.model import load_image, ModelClient
-
+from legion_core.model import load_image, ModelClient
 from locust import HttpLocust, task, TaskSet
 
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #
 #    Copyright 2017 EPAM Systems
 #
@@ -13,25 +14,20 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-import os
-import random
+"""
+Entry point for WSGI server
+Example of usage: gunicorn legion.wsgi:application -k sync
+"""
 
-import legion.config
-import unittest2
-from legion_core.model import ModelClient
+try:
+    import docker_bootup
+except ImportError:
+    pass
 
+from legion.logging import redirect_to_stdout, set_log_level
+from legion_pyserve.serving.pyserve import init_application
 
-class BasicTest(unittest2.TestCase):
-    def setUp(self):
-        self._client = ModelClient(os.environ.get(*legion.config.MODEL_ID))
+set_log_level()
+redirect_to_stdout()
 
-    def test_random_sum(self):
-        a = random.randint(0, 100)
-        b = random.randint(0, 100)
-        response = self._client.invoke(a=a, b=b)
-
-        self.assertEqual(response['result'], a + b, 'Wrong answer for a={} and b={}'.format(a, b))
-
-
-if __name__ == '__main__':
-    unittest2.main()
+application = init_application()

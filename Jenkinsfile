@@ -52,7 +52,7 @@ node {
     		cd -
     		'''
 
-            def version = sh returnStdout: true, script: '.venv/bin/update_version_id --extended-output legion/legion/version.py'
+            def version = sh returnStdout: true, script: '.venv/bin/update_version_id --extended-output legion/legion_core/version.py'
             print("Detected legion version:\n" + version)
 
             version = version.split("\n")

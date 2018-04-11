@@ -24,7 +24,6 @@ import docker
 import docker.errors
 import legion
 import legion.config
-import legion.containers.headers
 import legion.io
 import legion.utils
 
@@ -41,100 +40,6 @@ def build_docker_client(args=None):
     """
     client = docker.from_env()
     return client
-
-
-def build_docker_image(client, base_image, model_id, model_file, labels,
-                       model_class, args):
-    """
-    Build docker image from base image and model file
-
-    :param client: Docker client
-    :type client: :py:class:`docker.client.DockerClient`
-    :param base_image: name of base image
-    :type base_image: str
-    :param model_id: model id
-    :type model_id: str
-    :param model_file: path to model file
-    :type model_file: str
-    :param labels: image labels
-    :type labels: dict[str, str]
-    :param model_class: #TODO ADD
-    :type model_class: #TODO ADD
-    :param args: command arguments
-    :type args: :py:class:`argparse.Namespace`
-
-    :param python_package: path to wheel or None for install from PIP
-    :type python_package: str or None
-    :param python_package_version: custom package version
-    :type python_package_version: str or None
-    :param python_repository: custom PIP repository
-    :type python_repository: str or None
-    :param docker_image_tag: str docker image tag
-    :type docker_image_tag: str ot None
-    :param serving: serving worker, one of VALID_SERVING_WORKERS
-    :type serving: str
-    :return: docker.models.Image
-    """
-
-    python_package = args.python_package
-    python_package_version = args.python_package_version
-    python_repository = args.python_repository
-    docker_image_tag = args.docker_image_tag
-
-    with legion.utils.TemporaryFolder('legion-docker-build') as temp_directory:
-        folder, model_filename = os.path.split(model_file)
-
-        shutil.copy2(model_file, os.path.join(temp_directory.path, model_filename))
-
-        install_target = 'legion'
-        wheel_target = False
-        source_repository = ''
-
-        if python_package:
-            if not os.path.exists(python_package):
-                raise Exception('Python package file not found: %s' % python_package)
-
-            install_target = os.path.basename(python_package)
-            wheel_target = True
-            shutil.copy2(python_package, os.path.join(temp_directory.path, install_target))
-        else:
-            if python_package_version:
-                install_target = 'legion==%s' % python_package_version
-            if python_repository:
-                source_repository = '--extra-index-url %s' % python_repository
-
-        base_data = {
-            'DOCKER_BASE_IMAGE': base_image,
-            'MODEL_ID': model_id,
-            'MODEL_FILE': model_filename,
-            'PIP_INSTALL_TARGET': install_target,
-            'PIP_REPOSITORY': source_repository,
-            'PIP_CUSTOM_TARGET': wheel_target
-        }
-
-        builder = model_class.get_builder()
-        builder(temp_directory.path, base_data, args)
-
-        labels = {k: str(v) if v else None for (k, v) in labels.items()}
-
-        LOGGER.info('Building docker image in folder %s' % (temp_directory.path))
-        try:
-            image = client.images.build(
-                tag=docker_image_tag,
-                nocache=True,
-                path=temp_directory.path,
-                rm=True,
-                labels=labels
-            )
-        except docker.errors.BuildError as build_error:
-            LOGGER.error('Cannot build image: %s' % (build_error))
-            raise build_error
-
-        # TODO: Temporary
-        if isinstance(image, tuple):
-            return image[0]
-
-        return image
 
 
 def generate_docker_labels_for_image(model_file, model_id, args):
