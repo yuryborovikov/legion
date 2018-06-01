@@ -42,14 +42,28 @@ node {
         }
         
         stage('Create jenkins jobs'){
+            sh """
+                cd legion_test
+                ../.venv/bin/python3 -m pip install -r requirements/base.txt
+                ../.venv/bin/python3 -m pip install -r requirements/test.txt
+                ../.venv/bin/python3 setup.py develop
+                cd ..
+               """
+            sh """
+                PYTHONHTTPSVERIFY=0  \
+                .venv/bin/create_example_jobs \
+                "https://jenkins.${params.Profile}" \
+                etl/Deploy-DAGs \
+                . \
+                "git@github.com:epam/legion.git" \
+                ${targetBranch} \
+                --connection-timeout 600 \
+                --git-root-key "legion-root-key" \
+                --plain-tasks \
+                --dynamic-model-prefix "AIRFLOW"
+               """
             if (params.CreateJenkinsTests){
                 sh """
-                cd legion_test
-                ../.venv/bin/pip install -r requirements/base.txt
-                ../.venv/bin/pip install -r requirements/test.txt
-                ../.venv/bin/python setup.py develop
-                cd ..
-
                 .venv/bin/create_example_jobs \
                 "https://jenkins.${params.Profile}" \
                 examples \

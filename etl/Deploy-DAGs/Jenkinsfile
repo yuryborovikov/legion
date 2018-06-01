@@ -1,0 +1,13 @@
+pipeline {
+    agent { label 'master' }
+
+    stages {
+    	stage('Deploy'){
+    	    steps {
+                checkout scm
+                sh "cp -f ${params.dags_path} $AIRFLOW_DAGS_DIRECTORY"
+                sh "cp -fR ${params.plugins_path} $AIRFLOW_DAGS_DIRECTORY"
+            }
+    	}
+    }
+}
