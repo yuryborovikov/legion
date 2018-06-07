@@ -144,6 +144,11 @@ node {
 			"""
 
             sh """
+    	    cd k8s/test-bare-model-api
+    	    docker build $dockerCacheArg -t legion/test-bare-model-api .
+    	    """
+
+            sh """
     	    cd k8s/grafana
     	    docker build $dockerCacheArg --build-arg pip_extra_index_params="--extra-index-url ${params.PyPiRepository}" --build-arg pip_legion_version_string="==${Globals.baseVersion}+${Globals.localVersion}" -t legion/k8s-grafana .
     	    """
@@ -159,7 +164,7 @@ node {
             sed -i "s/{BUILD_INFO}/#${env.BUILD_NUMBER} \$build_time UTC/" k8s/edge/static/index.html
 
     	    cd k8s/edge
-    	    docker build $dockerCacheArg -t legion/k8s-edge .
+    	    docker build $dockerCacheArg --build-arg pip_extra_index_params="--extra-index-url ${params.PyPiRepository}" --build-arg pip_legion_version_string="==${Globals.baseVersion}+${Globals.localVersion}" -t legion/k8s-edge .
     	    """
 
             sh """
@@ -179,7 +184,7 @@ node {
         }
         stage('Publish Docker images'){
             if (params.PushDockerImages){
-                def images = ["legion/base-python-image", "legion/k8s-edge", "legion/k8s-jenkins", "legion/k8s-grafana", "legion/k8s-edi", "legion/k8s-airflow"]
+                def images = ["legion/base-python-image", "legion/k8s-edge", "legion/k8s-jenkins", "legion/k8s-grafana", "legion/k8s-edi", "legion/k8s-airflow", "legion/test-bare-model-api"]
 
                 images.each {
                     sh """
