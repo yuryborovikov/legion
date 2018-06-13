@@ -24,6 +24,7 @@ import re
 
 import docker
 import docker.errors
+import legion.exceptions
 import legion.config
 import legion.containers.docker
 import legion.containers.headers
@@ -54,7 +55,7 @@ def build_model(args):
 
     with ExternalFileReader(args.model_file) as external_reader:
         if not os.path.exists(external_reader.path):
-            raise Exception('Cannot find model file: %s' % external_reader.path)
+            raise legion.exceptions.CannotFindModelBinary(path=external_reader.path)
 
         with legion.io.ModelContainer(external_reader.path, do_not_load_model=True) as container:
             model_id = container.get('model.id', None)
@@ -62,7 +63,7 @@ def build_model(args):
                 model_id = args.model_id
 
         if not model_id:
-            raise Exception('Cannot get model id (not setted in container and not setted in arguments)')
+            raise legion.exceptions.ModelIdIsMissedInModelBinary()
 
         image_labels = legion.containers.docker.generate_docker_labels_for_image(external_reader.path, model_id, args)
 
@@ -96,7 +97,7 @@ def build_model(args):
 
             registry_delimiter = docker_registry.find('/')
             if registry_delimiter < 0:
-                raise Exception('Invalid registry format. Valid format: host:port/repository/image:tag')
+                raise legion.exceptions.InvalidRegistryFormat()
 
             registry = docker_registry[:registry_delimiter]
             image_name = docker_registry[registry_delimiter+1:]
@@ -218,6 +219,7 @@ def undeploy_kubernetes(args):
     :return: None
     """
     edi_client = legion.external.edi.build_client(args)
+    # Firstly try to inspect current models
     try:
         edi_client.undeploy(args.model_id, args.grace_period, args.model_version)
     except Exception as exception:
@@ -270,10 +272,7 @@ def deploy_kubernetes(args):
             information = [info for info in edi_client.inspect() if info.image == args.image]
 
             if not information:
-                raise Exception('Cannot found deployment with image = {}'.format(args.image))
-
-            if len(information) > 1:
-                raise Exception('Founded too many deployments with image = {}'.format(args.image))
+                raise legion.exceptions.CannotFindModelDeploymentAfterDeploy(args.image)
 
             deployment = information[0]
 
@@ -354,38 +353,6 @@ def deploy_model(args):
 
     print('Successfully created docker container %s for model %s' % (container.short_id, model_id))
     return container
-
-
-def undeploy_model(args):
-    """
-    Undeploy model from Docker Host
-
-    :param args: command arguments
-    :type args: :py:class:`argparse.Namespace`
-    :return: None
-    """
-    client = legion.containers.docker.build_docker_client(args)
-    network_id = legion.containers.docker.find_network(client, args)
-    grafana_client = legion.external.grafana.build_client(args)
-
-    current_containers = legion.containers.docker.get_stack_containers_and_images(client, network_id)
-
-    for container in current_containers['models']:
-        model_name = container.labels.get('com.epam.legion.model.id', None)
-        if model_name == args.model_id:
-            target_container = container
-            break
-    else:
-        raise Exception('Cannot found container for model_id = %s' % (args.model_id,))
-
-    LOGGER.info('Stopping container #%s', target_container.short_id)
-    target_container.stop()
-    LOGGER.info('Removing container #%s', target_container.short_id)
-    target_container.remove()
-    LOGGER.info('Removing Grafana dashboard for model %s', args.model_id)
-    grafana_client.remove_dashboard_for_model(args.model_id)
-
-    print('Successfully undeployed model %s' % (args.model_id,))
 
 
 def inspect(args):

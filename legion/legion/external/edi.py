@@ -185,13 +185,31 @@ class EdiClient:
         return self._query(legion.edi.server.EDI_SCALE, action='POST', payload=payload)['status']
 
 
+def add_edi_arguments(parser):
+    """
+    Add EDI arguments parser
+
+    :param parser:
+    :type parser:
+    :return:
+    """
+    parser.add_argument('--edi',
+                        type=str, help='EDI server host')
+    parser.add_argument('--user',
+                        type=str, help='EDI server user')
+    parser.add_argument('--password',
+                        type=str, help='EDI server password')
+    parser.add_argument('--token',
+                        type=str, help='EDI server token')
+
+
 def build_client(args):
     """
     Build EDI client from from ENV and from command line arguments
 
     :param args: command arguments with .namespace
     :type args: :py:class:`argparse.Namespace`
-    :return:
+    :return: :py:class:`legion.external.edi.EdiClient` -- EDI client
     """
     host = os.environ.get(*legion.config.EDI_URL)
     user = os.environ.get(*legion.config.EDI_USER)

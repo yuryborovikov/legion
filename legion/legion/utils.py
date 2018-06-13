@@ -24,13 +24,160 @@ import socket
 import subprocess
 import sys
 import tempfile
+import typing
+import traceback
 
 import legion.config
 
-import docker
 import requests
 import requests.auth
 from jinja2 import Environment, PackageLoader, select_autoescape
+
+
+class LegionExceptionType(type):
+    """
+    Base legion exception type metaclass
+    """
+    def __init__(cls, name, bases, attributes):
+        """
+        Construct base legion exception metaclass
+
+        :param name: name of class
+        :param bases: base classes
+        :param attributes: class attributes
+        """
+        super(LegionExceptionType, cls).__init__(name, bases, attributes)
+        cls._fields = [field for field in attributes if not field.startswith('_')]
+
+
+class LegionException(Exception, metaclass=LegionExceptionType):
+    """
+    Base legion exception type with serializing
+    """
+    def __init__(self, **kwargs):
+        """
+        Build base legion exception type with arguments (all defined arguments are required!)
+
+        :param kwargs: arguments
+        :type kwargs: Any
+        """
+        super().__init__()
+
+        missed_arguments = set(self._fields) - set(kwargs)
+        unknown_arguments = set(kwargs) - set(self._fields)
+
+        if missed_arguments:
+            raise MissedExceptionArguments(arguments_name=list(missed_arguments),
+                                           exception_class=self.__class__)
+
+        if unknown_arguments:
+            raise UnknownExceptionArguments(arguments_name=list(unknown_arguments),
+                                            exception_class=self.__class__)
+
+        self._arguments = kwargs
+
+    @property
+    def name(self):
+        """
+        Get class name
+
+        :return: str -- exception class name
+        """
+        return self.__class__.__name__
+
+    @property
+    def module(self):
+        """
+        Get exception module
+
+        :return: str -- exception module
+        """
+        return self.__class__.__module__
+
+    @property
+    def traceback(self):
+        """
+        Get exception traceback or None
+
+        :return:
+        """
+        exc_traceback = self.__traceback__
+        if exc_traceback:
+            return traceback.format_tb(exc_traceback)
+
+        return None
+
+    @property
+    def message(self):
+        """
+        Get exception message (for string representation)
+
+        :return: str -- exception message string
+        """
+        message = getattr(self, '__message__', None)
+        if not message:
+            return self.name
+
+        return message.format(**self.arguments)
+
+    @property
+    def arguments(self):
+        """
+        Get arguments of exception
+
+        :return: dict[str, Any] -- exception arguments
+        """
+        return self._arguments
+
+    def serialize(self):
+        """
+        Serialize legion exception object to dict
+
+        :return: dict[str, Any] -- dict-serialized information about exception
+        """
+        return {
+            'name': self.name,
+            'arguments': self.arguments,
+            'module': self.module,
+            'message': self.message,
+            'traceback': self.traceback
+        }
+
+    def __repr__(self):
+        """
+        Get string representation for building
+
+        :return: str -- repr representation
+        """
+        return '{}({})'.format(self.name,
+                               ', '.join('{}={!r}'.format(key, value)
+                                         for key, value in self.arguments.items()))
+
+    def __str__(self):
+        """
+        Get string representation
+
+        :return: str -- string representation
+        """
+        return self.message
+
+
+class MissedExceptionArguments(LegionException):
+    """
+    Exception about missed arguments during exception class building
+    """
+    __message__ = 'Arguments {arguments_name} are missing for exception class {exception_class.__name__}'
+    arguments_name = typing.List[str]
+    exception_class = type
+
+
+class UnknownExceptionArguments(LegionException):
+    """
+    Exception about unknown arguments during exception class building
+    """
+    __message__ = 'Arguments {arguments_name} unknown for exception class {exception_class.__name__}'
+    arguments_name = typing.List[str]
+    exception_class = type
 
 
 def render_template(template_name, values=None):
@@ -50,40 +197,6 @@ def render_template(template_name, values=None):
 
     template = env.get_template(template_name)
     return template.render(values)
-
-
-class EdiHTTPException(Exception):
-    """
-    Exception for EDI server (with HTTP code)
-    """
-
-    def __init__(self, http_code, message):
-        """
-        Build exception
-
-        :param http_code: HTTP code
-        :type http_code: int
-        :param message: message for user
-        :type message: str
-        """
-        super(EdiHTTPException, self).__init__(message)
-        self.http_code = http_code
-        self.message = message
-
-
-class EdiHTTPAccessDeniedException(EdiHTTPException):
-    """
-    Exception for EDI server -- access denied
-    """
-
-    def __init__(self, message='Access denied'):
-        """
-        Build exception
-
-        :param message: message for user
-        :type message: str
-        """
-        super(EdiHTTPAccessDeniedException, self).__init__(403, message)
 
 
 def detect_ip():
