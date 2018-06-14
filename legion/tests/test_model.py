@@ -52,7 +52,7 @@ class TestScipyModel(unittest2.TestCase):
         s = legion.model.model.ScipyModel(
             apply,
             prepare,
-            legion.io._get_column_types(df),
+            legion.io._get_column_types_from_pandas(df),
             version='1.0')
 
         s.apply({'d_int': '1', 'd_float': '2.0', 'd_str': 'omg'})
@@ -98,7 +98,7 @@ class TestScipyModel(unittest2.TestCase):
         s = legion.model.model.ScipyModel(
             apply,
             lambda x: x,
-            column_types=legion.io._get_column_types((df, {'excessive': CustomBoolObject()})),
+            column_types=legion.io._get_column_types_from_pandas((df, {'excessive': CustomBoolObject()})),
             version='1.0')
 
         s.apply({'d_int': '1', 'd_float': '2.0', 'd_str': 'omg', 'excessive': 'of course'})

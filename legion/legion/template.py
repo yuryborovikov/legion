@@ -24,8 +24,10 @@ import importlib
 
 import asyncio
 from asyncio.tasks import Task
-
 from jinja2 import Environment, FileSystemLoader, Undefined
+
+import legion.exceptions
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -179,7 +181,7 @@ class LegionTemplateEngine:
 
         # Check is any courutine present
         if not self._coroutines:
-            raise Exception('Template doesnt use any plugin')
+            raise legion.exceptions.TemplateDoesNotUseAnyPluginError()
 
         # Start loop
         LOGGER.debug('Staring loop')

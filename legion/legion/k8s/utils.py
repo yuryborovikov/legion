@@ -31,6 +31,7 @@ import urllib3.exceptions
 import yaml
 
 import legion
+import legion.exceptions
 import legion.containers.docker
 import legion.containers.headers
 import legion.config
@@ -72,8 +73,8 @@ def get_current_namespace():
     try:
         with open('/var/run/secrets/kubernetes.io/serviceaccount/namespace', 'r') as namespace_file:
             return namespace_file.read()
-    except Exception as exception:
-        raise Exception('Cannot get current namespace (it works only in cluster): {}'.format(exception))
+    except FileNotFoundError:
+        raise legion.exceptions.CodeShouldBeExecutedInClusterError()
 
 
 def load_config(path_to_config):
@@ -84,11 +85,8 @@ def load_config(path_to_config):
     :type path_to_config: str
     :return: dict -- cluster config
     """
-    if not os.path.exists(path_to_config):
-        raise Exception('config path %s not exists' % path_to_config)
-
-    if not os.path.isfile(path_to_config):
-        raise Exception('config path %s is not a file' % path_to_config)
+    if not os.path.exists(path_to_config) or not os.path.isfile(path_to_config):
+        raise legion.exceptions.MissedFileError(path=path_to_config)
 
     with open(path_to_config, 'r') as stream:
         return yaml.load(stream)
@@ -102,11 +100,8 @@ def load_secrets(path_to_secrets):
     :type path_to_secrets: str
     :return: dict[str, str] -- dict of secret name => secret value
     """
-    if not os.path.exists(path_to_secrets):
-        raise Exception('secrets path %s not exists' % path_to_secrets)
-
-    if not os.path.isdir(path_to_secrets):
-        raise Exception('secrets path %s is not a directory' % path_to_secrets)
+    if not os.path.exists(path_to_secrets) or not os.path.isfile(path_to_secrets):
+        raise legion.exceptions.MissedFileError(path=path_to_secrets)
 
     files = [
         (file, os.path.abspath(os.path.join(path_to_secrets, file))) for file

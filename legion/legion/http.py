@@ -20,6 +20,7 @@ import functools
 import os
 import logging
 
+import legion.exceptions
 import legion.config
 import legion.utils
 
@@ -141,12 +142,14 @@ def populate_fields(**fields):
 
             for field, value in parameters.items():
                 if field not in fields:
-                    raise Exception('Unknown parameter: %s' % field)
+                    raise legion.exceptions.UnknownParameterError(field_name=field)
 
                 try:
                     casted_parameters[field] = fields[field](value)
                 except ValueError as cast_value_exception:
-                    raise Exception('Cannot cast field %s to %s: %s' % (field, fields[field], cast_value_exception))
+                    raise legion.exceptions.CastFailedError(field_name=field,
+                                                            target_type=fields[field],
+                                                            cast_error=str(cast_value_exception))
 
             kwargs.update(casted_parameters)
 
@@ -177,7 +180,7 @@ def authenticate(authenticator):
                 password = auth.password
 
             if not authenticator(username, password):
-                raise legion.utils.EdiHTTPAccessDeniedException()
+                raise legion.exceptions.AccessDeniedError()
 
             return method(*args, **kwargs)
 
@@ -199,7 +202,7 @@ def requested_fields(*fields):
         def decorated_function(*args, **kwargs):
             for field in fields:
                 if field not in kwargs:
-                    raise Exception('Requested field %s s not set' % field)
+                    raise legion.exceptions.RequestFieldIsMissedError(field_name=field)
 
             return method(*args, **kwargs)
 

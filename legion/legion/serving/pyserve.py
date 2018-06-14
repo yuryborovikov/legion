@@ -20,6 +20,7 @@ Flask app
 import logging
 import os
 
+import legion.exceptions
 import legion.config
 import legion.external.grafana
 import legion.http
@@ -58,7 +59,7 @@ def model_info(model_id):
     :return: :py:class:`Flask.Response` -- model description
     """
     if model_id != app.config['MODEL_ID']:
-        raise Exception('Invalid model handler: {}, not {}'.format(app.config['MODEL_ID'], model_id))
+        legion.exceptions.RequestWithWrongModelID(model_id=model_id)
 
     model = app.config['model']
 
@@ -75,7 +76,7 @@ def model_invoke(model_id):
     :return: :py:class:`Flask.Response` -- result of calculation
     """
     if model_id != app.config['MODEL_ID']:
-        raise Exception('Invalid model handler: {}, not {}'.format(app.config['MODEL_ID'], model_id))
+        legion.exceptions.RequestWithWrongModelID(model_id=model_id)
 
     input_dict = legion.http.parse_request(request)
 
@@ -110,7 +111,8 @@ def init_model(application):
         with legion.io.ModelContainer(file) as container:
             model = container.model
     else:
-        raise Exception('Unknown model file')
+        raise legion.exceptions.EnvironmentVariableMissedError(name='MODEL_FILE')
+
     return model
 
 

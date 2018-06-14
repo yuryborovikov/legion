@@ -55,7 +55,7 @@ def build_model(args):
 
     with ExternalFileReader(args.model_file) as external_reader:
         if not os.path.exists(external_reader.path):
-            raise legion.exceptions.CannotFindModelBinary(path=external_reader.path)
+            raise legion.exceptions.MissedFileError(path=external_reader.path)
 
         with legion.io.ModelContainer(external_reader.path, do_not_load_model=True) as container:
             model_id = container.get('model.id', None)
@@ -97,7 +97,7 @@ def build_model(args):
 
             registry_delimiter = docker_registry.find('/')
             if registry_delimiter < 0:
-                raise legion.exceptions.InvalidRegistryFormat()
+                raise legion.exceptions.InvalidRegistryFormatError(registry=docker_registry)
 
             registry = docker_registry[:registry_delimiter]
             image_name = docker_registry[registry_delimiter+1:]
@@ -215,6 +215,7 @@ def undeploy_kubernetes(args):
     :return: None
     """
     edi_client = legion.external.edi.build_client(args)
+
     # Firstly try to inspect current models
     try:
         edi_client.undeploy(args.model_id, args.grace_period, args.model_version)
@@ -269,7 +270,7 @@ def deploy_kubernetes(args):
             information = [info for info in edi_client.inspect() if info.image == args.image]
 
             if not information:
-                raise legion.exceptions.CannotFindModelDeploymentAfterDeploy(args.image)
+                raise legion.exceptions.ModelDeploymentNotFoundAfterDeployError(image=args.image)
 
             deployment = information[0]
 

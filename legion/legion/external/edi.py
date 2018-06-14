@@ -24,6 +24,7 @@ import os
 import legion.k8s
 import legion.edi.server
 import legion.config
+import legion.exceptions
 import requests
 import requests.exceptions
 

@@ -24,6 +24,7 @@ import kubernetes.config
 import kubernetes.config.config_exception
 
 import legion.model
+import legion.exceptions
 from legion.containers.headers import DOMAIN_MODEL_ID, DOMAIN_MODEL_VERSION
 import legion.k8s.enclave
 import legion.containers.headers
@@ -49,24 +50,28 @@ class Service:
         :type k8s_service: V1Service
         """
         if not k8s_service.metadata.labels:
-            raise Exception('Invalid service for introspection: labels are missing')
+            raise legion.exceptions.InvalidK8SObjectError(object_type='service',
+                                                          cause='labels are missing')
 
         self._name = k8s_service.metadata.labels.get(LEGION_COMPONENT_LABEL)
         LOGGER.debug('Analyzing service {}'.format(self._name))
 
         if not self._name:
-            raise Exception('Invalid service for introspection: label {} is missing'.format(LEGION_COMPONENT_LABEL))
+            raise legion.exceptions.InvalidK8SObjectError(object_type='service',
+                                                          cause='label {} is missing'.format(LEGION_COMPONENT_LABEL))
 
         self._k8s_service = k8s_service
         # Get port
         ports = self.k8s_service.spec.ports
         if not ports:
-            raise Exception('Invalid service for introspection: {} has no ports'.format(self._name))
+            raise legion.exceptions.InvalidK8SObjectError(object_type='service',
+                                                          cause='{} has no ports'.format(self._name))
 
         api_ports = [port.port for port in ports if port.name == LEGION_API_SERVICE_PORT]
         if not api_ports:
-            raise Exception('Invalid service for introspection: cannot find port {} for service {}'
-                            .format(LEGION_API_SERVICE_PORT, self._name))
+            raise legion.exceptions.InvalidK8SObjectError(object_type='service',
+                                                          cause='cannot find port {} for service {}'
+                                                          .format(LEGION_API_SERVICE_PORT, self._name))
 
         self._port = api_ports[0]
 

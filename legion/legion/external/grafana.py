@@ -21,6 +21,7 @@ import json
 import os
 
 import legion.config
+import legion.exceptions
 from legion.utils import render_template
 
 import requests
@@ -71,10 +72,10 @@ class GrafanaClient:
         response = requests.request(action.lower(), full_url, json=payload, headers=headers, auth=auth)
 
         if response.status_code in (401, 403):
-            raise Exception('Auth failed')
+            raise legion.exceptions.AccessDeniedError()
 
         if response.status_code != 200:
-            raise Exception('Wrong answer for url = %s: %s' % (full_url, repr(response)))
+            raise legion.exceptions.WrongHTTPResponseError(code=response.status_code, url=full_url)
 
         answer = json.loads(response.text)
 

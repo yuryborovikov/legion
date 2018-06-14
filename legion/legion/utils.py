@@ -28,6 +28,7 @@ import typing
 import traceback
 
 import legion.config
+import legion.exceptions
 
 import requests
 import requests.auth
@@ -38,6 +39,7 @@ class LegionExceptionType(type):
     """
     Base legion exception type metaclass
     """
+
     def __init__(cls, name, bases, attributes):
         """
         Construct base legion exception metaclass
@@ -54,6 +56,7 @@ class LegionException(Exception, metaclass=LegionExceptionType):
     """
     Base legion exception type with serializing
     """
+
     def __init__(self, **kwargs):
         """
         Build base legion exception type with arguments (all defined arguments are required!)
@@ -243,7 +246,7 @@ def remove_directory(path):
         elif os.path.isfile(path):
             os.remove(path)
         else:
-            raise Exception('Not a directory or file: %s' % path)
+            raise legion.exceptions.MissedFileOrDirectoryError(path=path)
     finally:
         pass
 
@@ -350,7 +353,7 @@ def is_local_resource(path):
         return False
 
     if '://' in path:
-        raise Exception('Unknown or unavailable resource: %s' % path)
+        raise legion.exceptions.UnknownExternalResourceTypeError(path=path)
 
     return True
 
@@ -372,7 +375,7 @@ def normalize_external_resource_path(path):
     first_double_slash = path.find('//')
 
     if first_double_slash < 0:
-        raise Exception('Cannot found double slash')
+        raise legion.exceptions.ExternalResourceDoesNotContainProtocolError(path=path)
 
     if len(path) == first_double_slash + 2:
         return path + default_host
@@ -423,7 +426,8 @@ def save_file(temp_file, target_file, remove_after_delete=False):
                                         data=file,
                                         auth=auth)
                 if response.status_code >= 400:
-                    raise Exception('Wrong status code %d returned for url %s' % (response.status_code, url))
+                    raise legion.exceptions.WrongHTTPResponseError(url=url,
+                                                                   code=response.status_code)
 
             result_path = url
 
@@ -454,7 +458,8 @@ def download_file(target_file):
                             verify=False,
                             auth=credentials)
     if response.status_code >= 400 or response.status_code < 200:
-        raise Exception('Cannot load resource: %s. Returned status code: %d' % (url, response.status_code))
+        raise legion.exceptions.WrongHTTPResponseError(url=url,
+                                                       code=response.status_code)
 
     temp_file = tempfile.mktemp(suffix=name)
 

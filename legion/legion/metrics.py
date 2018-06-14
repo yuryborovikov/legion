@@ -22,6 +22,7 @@ import time
 from enum import Enum
 
 import legion.config
+import legion.exceptions
 from legion.model.model_id import get_model_id, init
 from legion.utils import normalize_name
 
@@ -69,7 +70,7 @@ def get_build_number():
     try:
         return int(os.getenv(*legion.config.BUILD_NUMBER))
     except ValueError:
-        raise Exception('Cannot parse build number as integer')
+        raise legion.exceptions.CannotParseBuildNumber()
 
 
 def get_metric_name(metric):

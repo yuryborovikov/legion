@@ -28,6 +28,7 @@ import zipfile
 
 import dill
 import legion
+import legion.exceptions
 import legion.containers.headers
 import legion.config
 import legion.model.types
@@ -39,7 +40,7 @@ from legion.utils import TemporaryFolder, send_header_to_stderr, save_file, get_
 from pandas import DataFrame
 
 
-def _get_column_types(param_types):
+def _get_column_types_from_pandas(param_types):
     """
     Build dict with ColumnInformation from param_types argument for export function
 
@@ -92,6 +93,9 @@ class ModelContainer:
         self._properties = {}
 
         if self._is_saved:
+            if not os.path.exists(self._file):
+                raise legion.exceptions.MissedFileError(path=self._file)  # Invalid argument exception
+
             self._load()
 
     def _load(self):
@@ -100,9 +104,6 @@ class ModelContainer:
 
         :return: None
         """
-        if not os.path.exists(self._file):
-            raise Exception('File not existed: %s' % (self._file,))
-
         try:
             with TemporaryFolder('legion-model-save') as temp_directory:
                 with zipfile.ZipFile(self._file, 'r') as stream:
@@ -118,8 +119,7 @@ class ModelContainer:
                 with open(info_path, 'r') as file:
                     self._load_info(file)
         except zipfile.BadZipFile:
-            raise Exception('Model files is not a zip file: %s (size: %dKb)' %
-                            (self._file, os.path.getsize(self._file) / 1024))
+            raise legion.exceptions.NotAZipFileError(path=self._file)
 
     def _load_info(self, file):
         """
@@ -149,7 +149,7 @@ class ModelContainer:
         """
         model_id = get_model_id()
         if not model_id or is_model_id_auto_deduced():
-            raise Exception('Cannot get model_id. Please set using legion.init_model(<name>)')
+            raise legion.exceptions.ModelIDHasNotBeenInitializedError()
 
         self['model.id'] = model_id
         self['model.version'] = self._model.version
@@ -337,22 +337,6 @@ class ModelContainer:
         return iter(self._properties)
 
 
-def deduce_param_types(data_frame, optional_dictionary=None):
-    """
-    Deduce param types of pandas DF. Optionally overwrite to custom legion.BaseType
-
-    :param data_frame: pandas DF
-    :type data_frame: :py:class:`pandas.DataFrame`
-    :param optional_dictionary: custom dict contains of column_name => legion.types.BaseType
-    :type optional_dictionary: dict[str, :py:class:`legion.types.BaseType`]
-    :return: dict[str, :py:class:`legion.types.ColumnInformation`]
-    """
-    if optional_dictionary:
-        return _get_column_types((data_frame, optional_dictionary))
-
-    return _get_column_types(data_frame)
-
-
 def deduce_model_file_name(version=None):
     """
     Get model file name
@@ -366,7 +350,7 @@ def deduce_model_file_name(version=None):
 
     model_id = get_model_id()
     if not model_id or is_model_id_auto_deduced():
-        raise Exception('Cannot get model_id. Please set using legion.init_model(<name>)')
+        raise legion.exceptions.ModelIDHasNotBeenInitializedError()
 
     date_string = datetime.datetime.now().strftime('%y%m%d%H%M%S')
 
@@ -411,13 +395,14 @@ def _export(filename=None,
     :return: :py:class:`legion.model.ScipyModel` -- model instance
     """
     if not hasattr(apply_func, '__call__'):
-        raise Exception('Provided non-callable object as apply_function')
+        raise legion.exceptions.WrongArgumentType(argument_name='apply_func', cause='should be callable')
 
     if column_types:
         if not isinstance(column_types, dict) \
                 or not column_types.keys() \
                 or not isinstance(list(column_types.values())[0], ColumnInformation):
-            raise Exception('Bad param_types / input_data_frame provided')
+            raise legion.exceptions.WrongArgumentType(argument_name='column_types',
+                                                      cause='bad param_types / input_data_frame has been provided')
 
     if prepare_func is None:
         def prepare_func(input_dict):
@@ -474,7 +459,7 @@ def export_df(apply_func, input_data_frame,
     :type version: str
     :return: :py:class:`legion.model.ScipyModel` -- model instance
     """
-    column_types = _get_column_types(input_data_frame)
+    column_types = _get_column_types_from_pandas(input_data_frame)
     return _export(filename, apply_func, prepare_func, column_types, version, True)
 
 

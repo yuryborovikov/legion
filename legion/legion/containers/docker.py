@@ -23,6 +23,7 @@ import shutil
 import docker
 import docker.errors
 import legion
+import legion.exceptions
 import legion.config
 import legion.containers.headers
 import legion.io
@@ -83,7 +84,7 @@ def build_docker_image(client, base_image, model_id, model_file, labels,
 
         if python_package:
             if not os.path.exists(python_package):
-                raise Exception('Python package file not found: %s' % python_package)
+                raise legion.exceptions.MissedFileError(path=python_package)
 
             install_target = os.path.basename(python_package)
             wheel_target = True
@@ -95,7 +96,7 @@ def build_docker_image(client, base_image, model_id, model_file, labels,
                 source_repository = '--extra-index-url %s' % python_repository
 
         if serving not in VALID_SERVING_WORKERS:
-            raise Exception('Unknown serving parameter. Should be one of %s' % (', '.join(VALID_SERVING_WORKERS),))
+            raise legion.exceptions.UnknownServingParameterError(value=serving)
 
         # Copy additional payload from templates / docker_files / <serving>
         additional_directory = os.path.join(

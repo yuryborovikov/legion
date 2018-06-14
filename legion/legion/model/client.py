@@ -22,6 +22,7 @@ import json
 import requests
 
 import legion.config
+import legion.exceptions
 from legion.utils import normalize_name
 
 from PIL import Image as PYTHON_Image
@@ -37,7 +38,7 @@ def load_image(path):
     """
     with PYTHON_Image.open(path) as image:
         if not isinstance(image, PYTHON_Image.Image):
-            raise Exception('Invalid image type')
+            raise legion.exceptions.InvalidImageFile(path=path)
 
         with open(path, 'rb') as stream:
             return stream.read()
@@ -131,8 +132,7 @@ class ModelClient:
         :return: dict -- parsed response
         """
         if not 200 <= response.status_code < 400:
-            raise Exception('Wrong status code returned: {}. Data: {}. URL: {}'
-                            .format(response.status_code, response.text, response.url))
+            raise legion.exceptions.WrongHTTPResponseError(code=response.status_code, url=response.url)
 
         data = response.text
 
