@@ -80,23 +80,22 @@ class EdiClient:
         try:
             response = requests.request(action.lower(), full_url, data=payload, headers=headers, auth=auth)
         except requests.exceptions.ConnectionError as exception:
-            raise Exception('Cannot connect to EDI server: %s. Exception: %s' % (self._base, exception))
+            raise legion.exceptions.FailedToConnectError(url=self._base, cause=str(exception))
 
-        if response.status_code in (401, 403):
-            raise Exception('Auth failed')
+        LOGGER.debug('Got answer: {!r} with code {} for URL {!r}'
+                     .format(response.text, response.status_code, full_url))
+
         try:
             answer = json.loads(response.text)
         except ValueError as json_decode_exception:
-            raise Exception('Cannot parse answer: %s. HTTP CODE: %d. Exception: %s'
-                            % (response.text, response.status_code, json_decode_exception))
+            raise legion.exceptions.InvalidJSONStructure(data=response.text, cause=str(json_decode_exception))
 
-        if 'error' in answer and answer['error']:
-            print(repr(answer))
-            raise Exception('Server returns error: %s' % answer.get('message', 'UNKNOWN'))
+        if answer.get('error', False):
+            LOGGER.error('Got error from server {!r}'.format(answer.get('exception')))
+            raise legion.exceptions.RecievedErrorFromServerError(error_message=answer.get('exception'))
 
         if response.status_code != 200:
-            raise Exception('Wrong HTTP code (%d) for url = %s: %s. %s'
-                            % (response.status_code, full_url, repr(response), response.text))
+            raise legion.exceptions.WrongHTTPResponseError(code=response.status_code, url=full_url)
 
         return answer
 
@@ -117,16 +116,14 @@ class EdiClient:
         """
         return self._query(legion.edi.server.EDI_INFO)
 
-    def deploy(self, image, count=1, k8s_image=None):
+    def deploy(self, image, count=1):
         """
         Deploy API endpoint
 
-        :param image: Docker image for deploy (for jybernetes deployment and local pull)
+        :param image: Docker image for deploy (for kubernetes deployment and local pull)
         :type image: str
         :param count: count of pods to create
         :type count: int
-        :param k8s_image: Docker image for kubernetes deployment
-        :type k8s_image: str or None
         :return: bool -- True
         """
         payload = {
@@ -134,8 +131,6 @@ class EdiClient:
         }
         if count:
             payload['count'] = count
-        if k8s_image:
-            payload['k8s_image'] = k8s_image
 
         return self._query(legion.edi.server.EDI_DEPLOY, action='POST', payload=payload)['status']
 

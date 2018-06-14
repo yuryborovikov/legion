@@ -96,23 +96,27 @@ def provide_json_response(method):
     """
     @functools.wraps(method)
     def decorated_function(*args, **kwargs):
+        code = 200
         try:
             response = method(*args, **kwargs)
-            code = 200
             if isinstance(response, bool):
                 response = {'status': response}
             elif not isinstance(response, dict) and not isinstance(response, list):
-                raise Exception('Unknown type returned from api call handler: %s' % type(response))
-        except legion.utils.EdiHTTPException as edi_http_exception:
-            response = {'error': True, 'message': edi_http_exception.message}
-            code = edi_http_exception.http_code
-            LOGGER.exception('Internal error during processing request for {}: {}'
-                             .format(method.__name__, edi_http_exception),
-                             exc_info=edi_http_exception)
-        except Exception as exception:
-            response = {'error': True, 'message': str(exception)}
+                raise legion.exceptions.InvalidAPIHandlerResponseError(type_name=str(type(response)))
+        except legion.exceptions.LegionException as legion_exception:
             code = 500
-            LOGGER.exception('Exception during processing request for {}: {}'.format(method.__name__, exception),
+            response = {'error': True,
+                        'exception': legion_exception.message,
+                        'exception_info': legion_exception.serialize()}
+            LOGGER.exception('Internal error during processing request for {}: {}'
+                             .format(method.__name__, legion_exception),
+                             exc_info=legion_exception)
+        except Exception as exception:
+            code = 500
+            response = {'error': True,
+                        'exception': str(exception)}
+            LOGGER.exception('Exception during processing request for {}: {}'
+                             .format(method.__name__, exception),
                              exc_info=exception)
 
         response = prepare_response(response)
