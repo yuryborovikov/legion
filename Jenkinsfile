@@ -87,7 +87,10 @@ node {
                     cd -
                     """
 
+<<<<<<< 37a5845984dcb22f9d8e25eff73328ce5e65aeaa
 
+=======
+>>>>>>> [#156] Refactoring, minor fixes
                     print('Build and distributing legion_airflow')
                     sh """
                     cp legion/legion/version.py legion_airflow/legion_airflow/version.py
@@ -134,12 +137,12 @@ node {
                     warnings canComputeNew: false, canResolveRelativePaths: false, categoriesPattern: '', defaultEncoding: '',  excludePattern: '', healthy: '', includePattern: '', messagesPattern: '', parserConfigurations: [[   parserName: 'PyLint', pattern: 'legion/pylint.log']], unHealthy: ''
 
                     sh '''
-                    cd etl
-                    ../.venv/bin/pycodestyle etl
+                    cd legion_airflow
+                    ../.venv/bin/pycodestyle legion_airflow
                     ../.venv/bin/pycodestyle tests
-                    ../.venv/bin/pydocstyle etl
+                    ../.venv/bin/pydocstyle legion_airflow
 
-                    ../.venv/bin/pylint etl >> pylint.log || exit 0
+                    ../.venv/bin/pylint legion_airflow >> pylint.log || exit 0
                     ../.venv/bin/pylint tests >> pylint.log || exit 0
                     cd ..
                     '''
