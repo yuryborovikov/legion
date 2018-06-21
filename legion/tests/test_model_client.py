@@ -24,7 +24,6 @@ except ImportError:
     from legion_test_utils import patch_environ
 import legion.config
 import legion.model.client
-import legion.serving.pyserve as pyserve
 
 
 class TestModelClient(unittest2.TestCase):
@@ -42,8 +41,15 @@ class TestModelClient(unittest2.TestCase):
             result = legion.model.client.load_image(image)
 
     def test_client_building(self):
-        client = legion.model.client.ModelClient(self.MODEL_ID, 'localhost')
+        client = legion.model.client.ModelClient(self.MODEL_ID, host='localhost')
         root_url = 'localhost/api/model/{}'.format(self.MODEL_ID)
+        self.assertEqual(client.api_url, root_url)
+        self.assertEqual(client.info_url, root_url + '/info')
+        self.assertEqual(client.invoke_url, root_url + '/invoke')
+
+    def test_client_building_version(self):
+        client = legion.model.client.ModelClient(self.MODEL_ID, host='localhost', model_version=self.MODEL_VERSION)
+        root_url = 'localhost/api/model/{}/{}'.format(self.MODEL_ID, self.MODEL_VERSION)
         self.assertEqual(client.api_url, root_url)
         self.assertEqual(client.info_url, root_url + '/info')
         self.assertEqual(client.invoke_url, root_url + '/invoke')

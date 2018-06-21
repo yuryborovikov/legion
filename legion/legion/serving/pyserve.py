@@ -34,8 +34,23 @@ blueprint = Blueprint('pyserve', __name__)
 
 SERVE_ROOT = '/'
 SERVE_INFO = '/api/model/{model_id}/info'
+SERVE_INFO_WITH_VERSION = '/api/model/{model_id}/{model_version}/info'
 SERVE_INVOKE = '/api/model/{model_id}/invoke'
+SERVE_INVOKE_WITH_VERSION = '/api/model/{model_id}/{model_version}/invoke'
 SERVE_HEALTH_CHECK = '/healthcheck'
+
+
+def check_model_id_and_version(model_id, model_version):
+    """
+
+    :param model_id:
+    :param model_version:
+    :return:
+    """
+    if model_id != app.config['MODEL_ID']:
+        raise Exception('Invalid model handler: id {}, not {}'.format(app.config['MODEL_ID'], model_id))
+    if model_version != app.config['MODEL_VERSION']:
+        raise Exception('Invalid model handler: version {}, not {}'.format(app.config['MODEL_VERSION'], model_version))
 
 
 @blueprint.route(SERVE_ROOT)
@@ -49,7 +64,8 @@ def root():
 
 
 @blueprint.route(SERVE_INFO.format(model_id='<model_id>'))
-def model_info(model_id):
+@blueprint.route(SERVE_INFO_WITH_VERSION.format(model_id='<model_id>', model_version='<model_version>'))
+def model_info(model_id, model_version=None):
     """
     Get model description
 
@@ -57,8 +73,7 @@ def model_info(model_id):
     :type model_id: str
     :return: :py:class:`Flask.Response` -- model description
     """
-    if model_id != app.config['MODEL_ID']:
-        raise Exception('Invalid model handler: {}, not {}'.format(app.config['MODEL_ID'], model_id))
+    check_model_id_and_version(model_id, model_version)
 
     model = app.config['model']
 
@@ -66,7 +81,9 @@ def model_info(model_id):
 
 
 @blueprint.route(SERVE_INVOKE.format(model_id='<model_id>'), methods=['POST', 'GET'])
-def model_invoke(model_id):
+@blueprint.route(SERVE_INVOKE_WITH_VERSION.format(model_id='<model_id>', model_version='<model_version>'),
+                 methods=['POST', 'GET'])
+def model_invoke(model_id, model_version=None):
     """
     Call model for calculation
 
@@ -74,8 +91,7 @@ def model_invoke(model_id):
     :type model_id: str
     :return: :py:class:`Flask.Response` -- result of calculation
     """
-    if model_id != app.config['MODEL_ID']:
-        raise Exception('Invalid model handler: {}, not {}'.format(app.config['MODEL_ID'], model_id))
+    check_model_id_and_version(model_id, model_version)
 
     input_dict = legion.http.parse_request(request)
 
@@ -160,6 +176,7 @@ def init_application(args=None):
 
     # Put a model object into application configuration
     application.config['model'] = init_model(application)
+    application.config['MODEL_VERSION'] = application.config['model'].version
 
     return application
 

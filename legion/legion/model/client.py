@@ -48,12 +48,14 @@ class ModelClient:
     Model HTTP client
     """
 
-    def __init__(self, model_id, host=None, http_client=None, use_relative_url=False, timeout=None):
+    def __init__(self, model_id, model_version=None, host=None, http_client=None, use_relative_url=False, timeout=None):
         """
         Build client
 
         :param model_id: model id
         :type model_id: str
+        :param model_version: (Optional) model version
+        :type model_version: str
         :param host: host that server model HTTP requests (default: from ENV)
         :type host: str or None
         :param http_client: HTTP client (default: requests)
@@ -64,6 +66,7 @@ class ModelClient:
         :type timeout: int
         """
         self._model_id = normalize_name(model_id)
+        self._model_version = model_version
 
         if host:
             self._host = host
@@ -102,7 +105,16 @@ class ModelClient:
 
         :return: str -- api root url
         """
-        return '{host}/api/model/{model_id}'.format(host=self._host, model_id=self._model_id)
+        parameters = {
+            'host': self._host,
+            'model_id': self._model_id,
+            'model_version': self._model_version
+        }
+
+        if self._model_version:
+            return '{host}/api/model/{model_id}/{model_version}'.format(**parameters)
+        else:
+            return '{host}/api/model/{model_id}'.format(**parameters)
 
     @property
     def invoke_url(self):
