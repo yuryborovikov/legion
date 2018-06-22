@@ -110,6 +110,30 @@ spec:
         - name: AIRFLOW_S3_URL
           value: "{{ .Values.jenkins.airflow.s3_url }}"
         {{- end }}
+        {{- if .Values.jenkins.openid.enable }}
+        - name: OPENID_ENABLE
+          value: "{{ .Values.jenkins.openId.enable }}"
+        - name: OPENID_CLIENTID
+          valueFrom:
+            secretKeyRef:
+              name: openid-secret
+              key: clientId
+        - name: OPENID_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: openid-secret
+              key: clientSecret
+        - name: OPENID_TOKEN_SERVER_URL
+          valueFrom:
+            secretKeyRef:
+              name: openid-secret
+              key: tokenServerUrl
+        - name: OPENID_AUTH_SERVER_URL
+          valueFrom:
+            secretKeyRef:
+              name: openid-secret
+              key: authServerUrl
+        {{- end }}
         ports:
         - containerPort: 8080
           name: http
@@ -145,6 +169,11 @@ spec:
       - name: git-secret
         secret:
           secretName: "{{ .Values.jenkins.git_secret_name }}"
+      {{- end }}
+      {{- if .Values.jenkins.openid.enable }}
+      - name: openid-secret
+        secret:
+          secretName: "{{ .Release.Name }}-openid"
       {{- end }}
 ---
 apiVersion: v1

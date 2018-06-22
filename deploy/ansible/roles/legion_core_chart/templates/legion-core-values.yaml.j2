@@ -35,6 +35,13 @@ jenkins:
     s3_url: '{{ airflow_s3_url }}'
     expected_output: '{{ airflow_expected_output }}'
 
+  openId:
+    enable: {{ dex.config.enabled | default("false") }}
+    clientId: {{ dex.config.client_id | default("~") }}
+    clientSecret: {{ dex.config.client_secret | default("~") }}
+    tokenServerUrl: https://dex.{{ cluster_name }}
+    authServerUrl: https://dex.{{ cluster_name }}
+
 graphite:
   enabled: true
   image:
