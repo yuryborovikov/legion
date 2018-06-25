@@ -110,7 +110,7 @@ spec:
         - name: AIRFLOW_S3_URL
           value: "{{ .Values.jenkins.airflow.s3_url }}"
         {{- end }}
-        {{- if .Values.jenkins.openid.enable }}
+        {{- if .Values.jenkins.openId.enable }}
         - name: OPENID_ENABLE
           value: "{{ .Values.jenkins.openId.enable }}"
         - name: OPENID_CLIENTID
@@ -170,7 +170,7 @@ spec:
         secret:
           secretName: "{{ .Values.jenkins.git_secret_name }}"
       {{- end }}
-      {{- if .Values.jenkins.openid.enable }}
+      {{- if .Values.jenkins.openId.enable }}
       - name: openid-secret
         secret:
           secretName: "{{ .Release.Name }}-openid"
