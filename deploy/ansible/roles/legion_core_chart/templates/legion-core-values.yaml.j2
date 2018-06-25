@@ -39,8 +39,8 @@ jenkins:
     enable: {{ dex.enabled | default(false) | bool }}
     clientId: {{ dex.config.client_id | default("~") }}
     clientSecret: {{ dex.config.client_secret | default("~") }}
-    tokenServerUrl: https://dex.{{ cluster_name }}
-    authServerUrl: https://dex.{{ cluster_name }}
+    tokenServerUrl: https://dex.{{ cluster_name }}/token
+    authServerUrl: https://dex.{{ cluster_name }}/auth
 
 graphite:
   enabled: true
