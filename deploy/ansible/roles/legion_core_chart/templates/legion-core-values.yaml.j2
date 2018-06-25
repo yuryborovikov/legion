@@ -36,7 +36,7 @@ jenkins:
     expected_output: '{{ airflow_expected_output }}'
 
   openId:
-    enable: {{ dex.config.enabled | default("false") }}
+    enable: {{ dex.enabled | default(false) | bool }}
     clientId: {{ dex.config.client_id | default("~") }}
     clientSecret: {{ dex.config.client_secret | default("~") }}
     tokenServerUrl: https://dex.{{ cluster_name }}
