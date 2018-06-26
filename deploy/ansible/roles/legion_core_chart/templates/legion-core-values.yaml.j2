@@ -41,6 +41,14 @@ jenkins:
     clientSecret: {{ dex.config.client_secret | default("~") }}
     tokenServerUrl: https://dex.{{ cluster_name }}/token
     authServerUrl: https://dex.{{ cluster_name }}/auth
+    {% for item in dex.groups %}
+    {% if item.clusterrolebinding == "cluster-admin" %}
+    adminGroup: {{ item.group }}
+    {% endif %}
+    {% if item.clusterrolebinding == "view" %}
+    readOnlyGroup: {{ item.group }}
+    {% endif %}
+    {% endfor %}
 
 graphite:
   enabled: true

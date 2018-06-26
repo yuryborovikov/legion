@@ -45,6 +45,8 @@ jenkins:
     clientSecret: ~
     tokenServerUrl: ~
     authServerUrl: ~
+    adminGroup: ~
+    readOnlyGroup: ~
 
 nexus:
   # Nexus repository configuration
@@ -117,6 +119,13 @@ grafana:
     tls:
       enabled: true
       autoSecretNameDeduction: true
+
+  openId:
+    enable: false
+    clientId: ~
+    clientSecret: ~
+    tokenServerUrl: ~
+    authServerUrl: ~
 
 graphite:
   enabled: true
