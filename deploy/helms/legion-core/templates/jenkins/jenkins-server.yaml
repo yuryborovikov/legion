@@ -133,16 +133,16 @@ spec:
             secretKeyRef:
               name: {{ .Release.Name }}-jenkins-openid
               key: authServerUrl
-        - name: OPENID_ADMIN_GROUP
+        - name: OPENID_ADMIN_GROUPS
           valueFrom:
             secretKeyRef:
               name: {{ .Release.Name }}-jenkins-openid
-              key: adminGroup
-        - name: OPENID_READ_ONLY_GROUP
+              key: adminGroups
+        - name: OPENID_READ_ONLY_GROUPS
           valueFrom:
             secretKeyRef:
               name: {{ .Release.Name }}-jenkins-openid
-              key: readOnlyGroup
+              key: readOnlyGroups
         {{- end }}
         ports:
         - containerPort: 8080

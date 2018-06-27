@@ -45,8 +45,8 @@ jenkins:
     clientSecret: ~
     tokenServerUrl: ~
     authServerUrl: ~
-    adminGroup: ~
-    readOnlyGroup: ~
+    adminGroups: ~
+    readOnlyGroups: ~
 
 nexus:
   # Nexus repository configuration
