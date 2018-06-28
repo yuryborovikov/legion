@@ -166,7 +166,7 @@ def runScript(scriptPath){
     pip install --extra-index-url \$LEGION_PACKAGE_REPOSITORY legion==\$LEGION_PACKAGE_VERSION
     export CONTAINER_DIR="`pwd`"
     cd ${env.ROOT_DIR}
-    python3 "${env.TARGET_SCRIPT_PATH}" > script-log.txt
+    python3.6 "${env.TARGET_SCRIPT_PATH}" > script-log.txt
 
     echo "<html><body><h2>Script output</h2><pre>" > notebook.html
     cat script-log.txt >> notebook.html
