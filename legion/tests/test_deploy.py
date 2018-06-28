@@ -45,6 +45,7 @@ class TestDeploy(unittest2.TestCase):
     def tearDown(self):
         pass
 
+    @unittest2.skip
     def test_model_simple_summation_model_by_df(self):
         with ModelTestDeployment(self.MODEL_ID, self.MODEL_VERSION,
                                  create_simple_summation_model_by_df, self.wheel_path) as deployment:
