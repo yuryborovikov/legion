@@ -76,6 +76,7 @@ def build_docker_image(client, base_image, model_id, model_file, labels,
         folder, model_filename = os.path.split(model_file)
 
         shutil.copy2(model_file, os.path.join(temp_directory.path, model_filename))
+        shutil.copytree(os.getcwd(), os.path.join(temp_directory.path, 'context'))
 
         install_target = 'legion'
         wheel_target = False
