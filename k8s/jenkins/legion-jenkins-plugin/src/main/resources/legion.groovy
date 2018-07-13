@@ -166,7 +166,7 @@ def runScript(scriptPath){
     pip install --extra-index-url \$LEGION_PACKAGE_REPOSITORY legion==\$LEGION_PACKAGE_VERSION
     export CONTAINER_DIR="`pwd`"
     cd ${env.ROOT_DIR}
-    python3 "${env.TARGET_SCRIPT_PATH}" > script-log.txt
+    python3.6 "${env.TARGET_SCRIPT_PATH}" > script-log.txt
 
     echo "<html><body><h2>Script output</h2><pre>" > notebook.html
     cat script-log.txt >> notebook.html
@@ -189,9 +189,11 @@ def generateModelTemporaryImageName(modelId, modelVersion){
 }
 
 def build() {
+    env.ROOT_DIR = rootDir()
     env.MODEL_ID = modelId()
     env.MODEL_FILE_NAME = modelFileName()
 
+    echo 'ROOT_DIR = ' + env.ROOT_DIR
     echo 'MODEL_ID = ' + env.MODEL_ID
     echo 'MODEL_FILE_NAME = ' + env.MODEL_FILE_NAME
 
@@ -203,14 +205,15 @@ def build() {
     env.EXTERNAL_IMAGE_NAME = "${System.getenv('MODEL_IMAGES_REGISTRY')}${env.MODEL_ID}:${modelImageVersion}"
 
     sh """
+    cd ${env.ROOT_DIR}
     legionctl build --python-package-version \$LEGION_PACKAGE_VERSION \
     --python-repository \$LEGION_PACKAGE_REPOSITORY --base-docker-image $baseDockerImage \
     --docker-image-tag ${env.TEMPORARY_DOCKER_IMAGE_NAME} \
     --push-to-registry  ${env.EXTERNAL_IMAGE_NAME} \
     ${env.MODEL_FILE_NAME}
     """
-
 }
+
 def deploy() {
     env.MODEL_ID = modelId()
     env.MODEL_FILE_NAME = modelFileName()
