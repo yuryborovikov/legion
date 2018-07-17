@@ -20,7 +20,7 @@ RUN apk add --update --no-cache \
     tiff-dev jpeg-dev zlib-dev tcl-dev tk-dev python2-tkinter \
     python3-tkinter-tests freetype-dev lcms2-dev libwebp harfbuzz \
     libstdc++ musl-dev linux-headers build-base pcre pcre-dev\
-    openblas-dev freetype-dev pkgconfig \
+    openblas-dev freetype-dev pkgconfig postgresql-dev \
     && ln -s locale.h /usr/include/xlocale.h
 
 ADD requirements.txt /root/requirements.txt
