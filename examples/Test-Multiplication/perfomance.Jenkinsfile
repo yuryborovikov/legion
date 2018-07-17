@@ -3,7 +3,7 @@ node {
 
     legion.pod(memory: '1Gi'){
         stage('clone repo'){
-            checout scm
+            checkout scm
         }
 
         stage('run perf tests'){
