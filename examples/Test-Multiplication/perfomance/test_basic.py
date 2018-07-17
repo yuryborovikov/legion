@@ -19,6 +19,7 @@ from locust import HttpLocust, task, TaskSet
 
 
 class ModelTaskSet(TaskSet):
+
     @task()
     def invoke_nine_decode(self):
         self._model_client.invoke(a=10, b=20)
@@ -28,6 +29,7 @@ class ModelTaskSet(TaskSet):
 
 
 class TestLocust(HttpLocust):
+    
     task_set = ModelTaskSet
     min_wait = 0
     max_wait = 0
