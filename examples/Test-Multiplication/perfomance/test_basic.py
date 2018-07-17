@@ -29,7 +29,7 @@ class ModelTaskSet(TaskSet):
 
 
 class TestLocust(HttpLocust):
-    
+
     task_set = ModelTaskSet
     min_wait = 0
     max_wait = 0

@@ -7,7 +7,7 @@ node {
         }
 
         stage('run notebook'){
-            legion.runNotebook('Multipilcation.ipynb')
+            legion.runNotebook('Multiplication.ipynb')
         }
 
         stage('build'){
