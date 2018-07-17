@@ -7,7 +7,7 @@ node {
         }
 
         stage('run perf tests'){
-            legion.runPerfomanceTests('test_basic.py')
+            legion.runPerformanceTests('test_basic.py')
         }
     }
 }
