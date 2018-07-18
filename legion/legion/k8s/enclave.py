@@ -228,6 +228,15 @@ class Enclave:
         labels = legion.k8s.utils.get_docker_image_labels(image)
         k8s_name, compatible_labels, model_id, model_version = legion.k8s.utils.get_meta_from_docker_labels(labels)
 
+        models_with_same_image = [model for model in self.models.values() if model.image == image]
+
+        if models_with_same_image:
+            raise Exception('Duplicating image {}. Image is currently used in model {} (version {})'.format(
+                image,
+                models_with_same_image[0].id,
+                models_with_same_image[0].version
+            ))
+
         if self.get_models(model_id, model_version):
             raise Exception('Duplicating model id and version (id={}, version={})'.format(model_id, model_version))
 

@@ -216,14 +216,25 @@ def deploy_kubernetes(args):
             if elapsed > args.wait_timeout and args.wait_timeout != 0:
                 break
 
-            information = [info for info in edi_client.inspect() if info.image == args.image]
+            information = [info for info in edi_client.inspect() if info.image == args.image and info.model_api_ok]
 
-            if not information:
-                raise Exception('Cannot find model deployment after deploy for image {}'.format(args.image))
+            if information:
+                deployment = information[0]
 
-            deployment = information[0]
-
-            if deployment.ready_replicas >= deployment.scale and deployment.model_api_ok:
-                break
+                if deployment.ready_replicas >= deployment.scale and deployment.model_api_ok:
+                    break
 
             time.sleep(1)
+
+        information = [info for info in edi_client.inspect() if info.image == args.image]
+        if not information:
+            raise Exception('Cannot find model deployment after deploy for image {}'.format(args.image))
+
+        deployment = information[0]
+
+        if not deployment.model_api_ok:
+            raise Exception('Invalid model pods state: {!r}'.format(deployment.model_api_info))
+
+        if deployment.ready_replicas < deployment.scale:
+            raise Exception('Cannot found enough replicas. Current replicas count: {}'
+                            .format(deployment.ready_replicas))
