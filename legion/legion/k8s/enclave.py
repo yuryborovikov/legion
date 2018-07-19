@@ -272,7 +272,8 @@ class Enclave:
 
         extensions_v1beta1 = kubernetes.client.ExtensionsV1beta1Api(client)
 
-        LOGGER.info('Creating deployment {} in namespace {}'.format(k8s_name, self.namespace))
+        LOGGER.info('Creating deployment {} in namespace {} with body: {!r}'
+                    .format(k8s_name, self.namespace, deployment))
         extensions_v1beta1.create_namespaced_deployment(
             body=deployment,
             namespace=self.namespace)
@@ -294,14 +295,17 @@ class Enclave:
 
         core_v1api = kubernetes.client.CoreV1Api(client)
 
-        LOGGER.info('Creating service {} in namespace {}'.format(k8s_name, self.namespace))
+        LOGGER.info('Creating service {} in namespace {} with body: {!r}'
+                    .format(k8s_name, self.namespace, service))
         core_v1api.create_namespaced_service(
             body=service,
             namespace=self.namespace)
 
         model_services = self.get_models(model_id, model_version)
         if model_services:
-            return model_services[0]
+            model_service = model_services[0]
+            LOGGER.info('Found model service: {!r}'.format(model_service))
+            return model_service
         else:
             raise Exception('Cannot find created model service for model {} id {}'.format(model_id, model_version))
 

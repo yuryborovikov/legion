@@ -558,8 +558,10 @@ def find_all_services(namespace='', component=''):
 
     core_api = kubernetes.client.CoreV1Api(client)
     if namespace:
+        LOGGER.info('Finding all services in namespace {}'.format(namespace))
         all_services = core_api.list_namespaced_service(namespace)
     else:
+        LOGGER.info('Finding all services in all namespaces')
         all_services = core_api.list_service_for_all_namespaces()
 
     if component:

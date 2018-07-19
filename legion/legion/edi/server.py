@@ -198,10 +198,12 @@ def inspect(model=None, version=None):
             host=model_service.url,
             timeout=3
         )
-        LOGGER.info('Building model client: {!r}'.format(model_client))
+        LOGGER.debug('Building model client: {!r} for model <{}>'.format(model_client, model_service))
 
         try:
+            LOGGER.debug('Requesting <{}> model\'s info through model client...'.format(model_service))
             model_api_info['result'] = model_client.info()
+            LOGGER.debug('Got model info: {!r}'.format(model_api_info['result']))
             model_api_ok = True
         except Exception as model_api_exception:
             LOGGER.error('Cannot connect to model <{}> endpoint to get info: {}'.format(model_service,
@@ -209,19 +211,19 @@ def inspect(model=None, version=None):
             model_api_info['exception'] = str(model_api_exception)
             model_api_ok = False
 
-        model_deployments.append(
-            legion.k8s.ModelDeploymentDescription(
-                status=model_service.status,
-                model=model_service.id,
-                version=model_service.version,
-                image=model_service.image,
-                scale=model_service.desired_scale,
-                ready_replicas=model_service.scale,
-                namespace=model_service.namespace,
-                model_api_ok=model_api_ok,
-                model_api_info=model_api_info,
-            )
+        deployment_description = legion.k8s.ModelDeploymentDescription(
+            status=model_service.status,
+            model=model_service.id,
+            version=model_service.version,
+            image=model_service.image,
+            scale=model_service.desired_scale,
+            ready_replicas=model_service.scale,
+            namespace=model_service.namespace,
+            model_api_ok=model_api_ok,
+            model_api_info=model_api_info,
         )
+        LOGGER.debug('Detected deployment: {!r}'.format(deployment_description._asdict()))
+        model_deployments.append(deployment_description)
 
     return [x._asdict() for x in model_deployments]
 
