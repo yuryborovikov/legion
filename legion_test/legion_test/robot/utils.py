@@ -138,22 +138,25 @@ class Utils:
         return founded[0]
 
     @staticmethod
-    def check_valid_http_response(url):
+    def check_valid_http_response(url, retries='3'):
         """
         Check if model return valid code for get request
 
         :param url: url with model_id for checking
         :type url: str
+        :param retries: count of retries
+        :type retries: str
         :return:  str -- response text
         """
         response = ""
-        for i in range(6):
+        retries = int(retries)
+        for i in range(retries):
             response = requests.get(url)
             if response.status_code >= 400 or response.status_code < 200:
                 print('Response code = {}, sleep and try again'.format(response.status_code))
                 time.sleep(3)
             elif response.status_code == 200:
                 break
-            elif i == 5:
+            elif i == retries - 1:
                 raise Exception('Returned wrong status code: {}'.format(response.status_code))
         return response.text

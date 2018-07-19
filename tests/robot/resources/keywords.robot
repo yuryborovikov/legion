@@ -155,7 +155,7 @@ Check model started
     [Documentation]  check if model run in container by http request
     [Arguments]           ${enclave}   ${model_id}  ${model_ver}
     Log                   request url is ${HOST_PROTOCOL}://edge-${enclave}.${HOST_BASE_DOMAIN}/api/model/${model_id}/${model_ver}/info
-    ${resp}=              Check valid http response   ${HOST_PROTOCOL}://edge-${enclave}.${HOST_BASE_DOMAIN}/api/model/${model_id}/${model_ver}/info
+    ${resp}=              Check valid http response   ${HOST_PROTOCOL}://edge-${enclave}.${HOST_BASE_DOMAIN}/api/model/${model_id}/${model_ver}/info  2
     Log                   ${resp}
     Should not be empty   ${resp}
     Log                   ${resp}
