@@ -216,12 +216,12 @@ def deploy_kubernetes(args):
             if elapsed > args.wait_timeout and args.wait_timeout != 0:
                 break
 
-            information = [info for info in edi_client.inspect() if info.image == args.image and info.model_api_ok]
+            information = [info for info in edi_client.inspect() if info.image == args.image]
 
             if information:
                 deployment = information[0]
 
-                if deployment.ready_replicas >= deployment.scale and deployment.model_api_ok:
+                if deployment.ready_replicas >= args.scale and deployment.model_api_ok:
                     break
 
             time.sleep(1)
