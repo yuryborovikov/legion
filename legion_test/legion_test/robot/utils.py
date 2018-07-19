@@ -151,12 +151,19 @@ class Utils:
         response = ""
         retries = int(retries)
         for i in range(retries):
-            response = requests.get(url)
-            if response.status_code >= 400 or response.status_code < 200:
-                print('Response code = {}, sleep and try again'.format(response.status_code))
-                time.sleep(3)
-            elif response.status_code == 200:
-                break
-            elif i == retries - 1:
+            try:
+                response = requests.get(url, timeout=10)
+
+                if response.status_code >= 400 or response.status_code < 200:
+                    print('Response code = {}, sleep and try again'.format(response.status_code))
+                elif response.status_code == 200:
+                    break
+
+            except requests.exceptions.Timeout:
+                print('Request failed due to timeout')
+
+            if i == retries - 1:
                 raise Exception('Returned wrong status code: {}'.format(response.status_code))
+
+            time.sleep(3)
         return response.text
