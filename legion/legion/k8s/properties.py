@@ -36,6 +36,7 @@ import legion.k8s.services
 import legion.utils
 
 LOGGER = logging.getLogger(__name__)
+RELOAD_TIMEOUT_SECONDS = 10
 
 
 class K8SPropertyStorage:
@@ -305,7 +306,6 @@ class K8SPropertyStorage:
         """
         if not self._cache_ttl:
             return
-
         if not self._last_load_time or not self._saved:
             return
 
