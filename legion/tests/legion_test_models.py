@@ -54,7 +54,6 @@ def create_simple_summation_model_by_df_with_prepare(model_id, model_version, pa
 
     return legion.model.export_df(apply, df).save(path)
 
-
 def create_simple_summation_model_by_types(model_id, model_version, path):
     def apply(x):
         return {'x': int(x['a'] + x['b'])}
