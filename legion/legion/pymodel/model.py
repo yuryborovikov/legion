@@ -360,6 +360,8 @@ class Model:
 
             result_path = save_file(temp_file, self._path)
 
+        send_header_to_stderr(legion.containers.headers.MODEL_ID, self.model_id)
+        send_header_to_stderr(legion.containers.headers.MODEL_VERSION, self.model_version)
         send_header_to_stderr(legion.containers.headers.MODEL_PATH, result_path)
         send_header_to_stderr(legion.containers.headers.SAVE_STATUS, 'OK')
 
