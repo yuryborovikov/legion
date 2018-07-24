@@ -36,34 +36,6 @@ import legion.k8s.services
 import legion.utils
 
 LOGGER = logging.getLogger(__name__)
-RELOAD_TIMEOUT_SECONDS = 10
-
-
-class FieldDefinition:
-    """
-    Field information storage
-    """
-    def __init__(self, data_type=legion.model.float32, default=0.0):
-        self._data_type = data_type
-        self._default = default
-
-    @staticmethod
-    def build_from_dict(data_dict):
-        return FieldDefinition(
-            data_type=data_dict.get('type'),
-            default=data_dict.get('default')
-        )
-
-    def as_dict(self):
-        """
-        Serialize object to a dict
-
-        :return: dict[str, any] -- serialized object
-        """
-        return {
-            'type': self._data_type,
-            'default': self._default
-        }
 
 
 class K8SPropertyStorage:
@@ -87,7 +59,8 @@ class K8SPropertyStorage:
         if not data:
             data = {}
         self._state = data
-        self._definitions = {}
+
+        self._cache_ttl = cache_ttl
 
         self._cache_ttl = cache_ttl
 
@@ -155,14 +128,6 @@ class K8SPropertyStorage:
         :return: str -- K8S namespace name
         """
         return self._k8s_namespace
-
-    def definitions(self):
-        """
-        Get definitions
-
-        :return: dict[str, :py:class:`legion.k8s.properties.FieldDefinition`] -- dict with field definitions
-        """
-        return self._definitions
 
     @property
     def k8s_namespace_or_default(self):
@@ -342,6 +307,7 @@ class K8SPropertyStorage:
         """
         if not self._cache_ttl:
             return
+
         if not self._last_load_time or not self._saved:
             return
 
@@ -402,18 +368,6 @@ class K8SPropertyStorage:
 
         LOGGER.debug('Deleting {!r}'.format(self))
         self._remove_k8s_resource(delete_options)
-
-    def define(self, key, definition):
-        """
-        Set definition for a field
-
-        :param key: field (or property name)
-        :type key: str
-        :param definition: field definitions
-        :type definition: :py:class:`legion.k8s.properties.FieldDefinition`
-        :return: None
-        """
-        self._definitions[key] = definition
 
     def __repr__(self):
         """
