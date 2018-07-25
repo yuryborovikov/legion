@@ -190,7 +190,6 @@ class Model:
 
         self._endpoints = {}  # type: dict or None
         self._path = None  # type: str or None
-        self._property_storage = None  # type: legion.k8s.properties.K8SPropertyStorage or None
 
         storage_name = model_properties_storage_name(self.model_id, self.model_version)
         self._properties = legion.k8s.K8SConfigMapStorage(storage_name,
@@ -361,8 +360,6 @@ class Model:
 
             result_path = save_file(temp_file, self._path)
 
-        send_header_to_stderr(legion.containers.headers.MODEL_ID, self.model_id)
-        send_header_to_stderr(legion.containers.headers.MODEL_VERSION, self.model_version)
         send_header_to_stderr(legion.containers.headers.MODEL_PATH, result_path)
         send_header_to_stderr(legion.containers.headers.SAVE_STATUS, 'OK')
 
