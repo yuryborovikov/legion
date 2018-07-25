@@ -1,6 +1,7 @@
 """K8S Connections hook package."""
 import os
 import json
+import base64
 
 from airflow import LoggingMixin
 from airflow.hooks.base_hook import BaseHook
@@ -37,12 +38,14 @@ class K8SSecretHook(BaseHook):
             secret = core_api.read_namespaced_secret(name=cls.CONNECTIONS_SECRET, namespace=namespace)
             if conn_id in secret.data:
                 conn_data = secret.data.get(conn_id)
-                conn = json.loads(conn_data)
-                cls.LOG.info("Return connection {} from K8S secret {}".format(conn_id, cls.CONNECTIONS_SECRET))
-                cls.LOG.info("{}-{}-{}-{}".format(conn['conn_id'], conn['conn_type'], conn['login'], conn['extra']))
-                return Connection(conn_id=conn['conn_id'], conn_type=conn['conn_type'], host=conn['host'],
-                                  login=conn['login'], password=conn['password'], schema=conn['schema'],
-                                  port=conn['port'], extra=conn['extra'], uri=conn['uri'])
+                if conn_data:
+                    conn_data = base64.b64decode(conn_data).decode('utf-8')
+                    conn = json.loads(conn_data)
+                    cls.LOG.info("Return connection {} from K8S secret {}".format(conn_id, cls.CONNECTIONS_SECRET))
+                    cls.LOG.info("{}-{}-{}-{}".format(conn['conn_id'], conn['conn_type'], conn['login'], conn['extra']))
+                    return Connection(conn_id=conn['conn_id'], conn_type=conn['conn_type'], host=conn['host'],
+                                      login=conn['login'], password=conn['password'], schema=conn['schema'],
+                                      port=conn['port'], extra=conn['extra'], uri=conn['uri'])
             else:
                 cls.LOG.info("{} not found in K8S secrets {}".format(conn_id, cls.CONNECTIONS_SECRET))
         except ApiException as ex:
