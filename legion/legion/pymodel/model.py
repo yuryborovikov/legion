@@ -190,6 +190,7 @@ class Model:
 
         self._endpoints = {}  # type: dict or None
         self._path = None  # type: str or None
+        self._property_storage = None  # type: legion.k8s.properties.K8SPropertyStorage or None
 
         storage_name = model_properties_storage_name(self.model_id, self.model_version)
         self._properties = legion.k8s.K8SConfigMapStorage(storage_name,
