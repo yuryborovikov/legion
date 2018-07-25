@@ -217,6 +217,7 @@ class Enclave:
         return model_services
 
     def _validate_model_properties_storage(self, model_id, model_version, properties, default_values):
+
         """
         Validate that model properties for model exists in a cluster and contains required properties
         If there are not properties storage in a cluster - create with default values
