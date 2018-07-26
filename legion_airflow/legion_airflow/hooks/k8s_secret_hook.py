@@ -1,7 +1,6 @@
 """K8S Connections hook package."""
 import os
 import json
-import base64
 
 from airflow import LoggingMixin
 from airflow.hooks.base_hook import BaseHook

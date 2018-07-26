@@ -7,9 +7,7 @@
   "login": "me",
   "password": "pass",
   "port": "",
-  "extra": {
-    "security_token": "sec_token"
-  }
+  "extra": "{\"security_token\": \"sec_token\"}"
 }
 {{- end }}
 
@@ -21,5 +19,5 @@ metadata:
   labels:
     com.epam.legion.property: "airflow-connections"
 data:
-  s3_conn: |-
+  test_conn: |-
     {{ include "airflow-connections" . | b64enc }}
