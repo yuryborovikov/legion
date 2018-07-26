@@ -24,7 +24,7 @@ class K8SSecretHook(BaseHook):
         :type conn_id: str
         :return: :py:class:`airflow.models.Connection` -- connection
         """
-        namespace = os.environ['NAMESPACE']
+        namespace = os.environ.get('NAMESPACE')
         try:
             secret = K8SSecretStorage.retrive(storage_name=cls.CONNECTIONS_SECRET, k8s_namespace=namespace)
             if conn_id in secret.data:
