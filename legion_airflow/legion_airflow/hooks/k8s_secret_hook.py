@@ -6,10 +6,8 @@ import base64
 from airflow import LoggingMixin
 from airflow.hooks.base_hook import BaseHook
 from airflow.models import Connection
-from kubernetes import client, config
-from kubernetes.client.rest import ApiException
 
-# from legion.k8s import K8SConfigMapStorage
+from legion.k8s import K8SSecretStorage
 
 
 class K8SSecretHook(BaseHook):
@@ -27,27 +25,19 @@ class K8SSecretHook(BaseHook):
         :type conn_id: str
         :return: :py:class:`airflow.models.Connection` -- connection
         """
-        try:
-            conf = config.load_incluster_config()
-        except config.config_exception.ConfigException:
-            conf = config.load_kube_config()
-        core_api = client.CoreV1Api()
         namespace = os.environ['NAMESPACE']
         try:
-            # secret = K8SConfigMapStorage(name=cls.CONNECTIONS_CONFIG_MAP, namespace=namespace)
-            secret = core_api.read_namespaced_secret(name=cls.CONNECTIONS_SECRET, namespace=namespace)
+            secret = K8SSecretStorage.retrive(storage_name=cls.CONNECTIONS_SECRET, k8s_namespace=namespace)
             if conn_id in secret.data:
                 conn_data = secret.data.get(conn_id)
                 if conn_data:
-                    conn_data = base64.b64decode(conn_data).decode('utf-8')
                     conn = json.loads(conn_data)
                     cls.LOG.info("Return connection {} from K8S secret {}".format(conn_id, cls.CONNECTIONS_SECRET))
-                    cls.LOG.info("{}-{}-{}-{}".format(conn['conn_id'], conn['conn_type'], conn['login'], conn['extra']))
                     return Connection(conn_id=conn['conn_id'], conn_type=conn['conn_type'], host=conn['host'],
                                       login=conn['login'], password=conn['password'], schema=conn['schema'],
-                                      port=conn['port'], extra=conn['extra'], uri=conn['uri'])
+                                      port=conn['port'], extra=json.dumps(conn['extra']))
             else:
                 cls.LOG.info("{} not found in K8S secrets {}".format(conn_id, cls.CONNECTIONS_SECRET))
-        except ApiException as ex:
-            cls.LOG.info("Can't use connections K8S secret {} because of {}".format(cls.CONNECTIONS_SECRET, str(ex)))
+        except Exception as ex:
+            cls.LOG.error("Can't read {} from K8S secret because of {}".format(conn_id, str(ex)))
         return super().get_connection(conn_id)

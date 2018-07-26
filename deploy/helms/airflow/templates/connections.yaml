@@ -7,7 +7,9 @@
   "login": "me",
   "password": "pass",
   "port": "",
-  "extra": "{\\"security_token\\": \\"sec_token\\"}"
+  "extra": {
+    "security_token": "sec_token"
+  }
 }
 {{- end }}
 
