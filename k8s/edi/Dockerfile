@@ -13,7 +13,8 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 #
-FROM legion/base-python-image
+ARG version=latest
+FROM legion/base-python-image:${version}
 
 RUN apk add --update \
     ca-certificates curl openrc docker \
