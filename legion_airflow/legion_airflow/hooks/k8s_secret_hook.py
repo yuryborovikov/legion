@@ -34,7 +34,7 @@ class K8SSecretHook(BaseHook):
                     cls.LOG.info("Return connection {} from K8S secret {}".format(conn_id, cls.CONNECTIONS_SECRET))
                     return Connection(conn_id=conn['conn_id'], conn_type=conn['conn_type'], host=conn['host'],
                                       login=conn['login'], password=conn['password'], schema=conn['schema'],
-                                      port=conn['port'], extra=json.dumps(conn['extra']))
+                                      port=conn['port'], extra=conn['extra'])
             else:
                 cls.LOG.info("{} not found in K8S secrets {}".format(conn_id, cls.CONNECTIONS_SECRET))
         except Exception as ex:
