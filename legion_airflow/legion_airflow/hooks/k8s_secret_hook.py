@@ -1,3 +1,6 @@
+#
+#    Copyright 2018 IQVIA. All Rights Reserved.
+#
 """K8S Connections hook package."""
 import os
 import json
