@@ -201,11 +201,11 @@ def page_not_found_handler(e):
 
 def init_model(application):
     """
-    Load model from app configuration
+    Initialize model from app configuration
 
     :param application: Flask app
     :type application: :py:class:`Flask.app`
-    :return: model instance
+    :return: None
     """
     if 'MODEL_FILE' not in application.config:
         raise Exception('No model file provided')
@@ -216,19 +216,24 @@ def init_model(application):
 
     # Load model container
     model_container = legion.pymodel.Model.load(model_file_path)
+    application.config['model'] = model_container
+    LOGGER.info('Model container has been initialized')
 
     # Load model endpoints
     endpoints = model_container.endpoints  # force endpoints loading
     LOGGER.info('Loaded endpoints: {}'.format(list(endpoints.keys())))
 
     # Load model properties
+    LOGGER.info('Setting properties to loaded properties {!r} (id: {})'.format(
+        model_container.properties,
+        id(model_container.properties)
+    ))
     legion.model.set_properties(model_container.properties)
 
     # Force reload if code run in a cluster and model required any properties
     if legion.k8s.utils.is_code_run_in_cluster() and model_container.required_props:
         legion.model.properties.load()
-
-    return model_container
+        legion.model.properties.start_update_watcher()
 
 
 def create_application():
@@ -276,7 +281,7 @@ def init_application(args=None):
     legion.http.configure_application(application, args)
 
     # Put a model object into application configuration
-    application.config['model'] = init_model(application)
+    init_model(application)
     application.register_error_handler(404, page_not_found_handler)
 
     return application

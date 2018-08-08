@@ -19,6 +19,7 @@ Python model
 import json
 import sys
 import os
+import time
 import zipfile
 
 import logging
@@ -166,6 +167,7 @@ class Model:
     ZIP_FILE_MODEL = 'model'
     ZIP_FILE_INFO = 'manifest.json'
     ZIP_FILE_PROPERTIES = 'properties'
+    ZIP_FILE_CALLBACK = 'callback'
 
     PROPERTY_MODEL_ID = 'model.id'
     PROPERTY_MODEL_VERSION = 'model.version'
@@ -191,9 +193,18 @@ class Model:
         self._endpoints = {}  # type: dict or None
         self._path = None  # type: str or None
 
+        self._on_property_update_callback = None  # type: typing.Callable[[], None] or None
+
         storage_name = model_properties_storage_name(self.model_id, self.model_version)
         self._properties = legion.k8s.K8SConfigMapStorage(storage_name,
                                                           cache_ttl=legion.config.MODEL_PROPERTIES_CACHE_TTL)
+
+        LOGGER.info('Setting properties update callback getter to local function {!r} (id: {})'.format(
+            self.get_on_property_update_callback,
+            id(self.get_on_property_update_callback)
+        ))
+
+        self._properties.set_update_callback(self.get_on_property_update_callback)
 
         send_header_to_stderr(legion.containers.headers.MODEL_ID, self.model_id)
         send_header_to_stderr(legion.containers.headers.MODEL_VERSION, self.model_version)
@@ -217,16 +228,26 @@ class Model:
         """
         self._path = path
         self._endpoints = None
+        LOGGER.info('Loading model from {}'.format(path))
 
+        LOGGER.debug('Loading metadata from {}'.format(Model.ZIP_FILE_INFO))
         with extract_archive_item(path, Model.ZIP_FILE_INFO) as manifest_path:
             with open(manifest_path, 'r') as manifest_file:
                 self._meta_information = json.load(manifest_file)
 
         self._required_properties = self._meta_information[self.PROPERTY_REQUIRED_PROPERTIES]
 
+        LOGGER.debug('Loading properties from {}'.format(Model.ZIP_FILE_PROPERTIES))
         with extract_archive_item(path, Model.ZIP_FILE_PROPERTIES) as properties_path:
             with open(properties_path, 'r') as properties_file:
                 self.properties.data = json.load(properties_file)
+
+        LOGGER.debug('Loading property update callback from {}'.format(Model.ZIP_FILE_CALLBACK))
+        with extract_archive_item(path, Model.ZIP_FILE_CALLBACK) as callback_path:
+            with open(callback_path, 'rb') as callback_file:
+                self._on_property_update_callback = dill.load(callback_file)
+
+        LOGGER.debug('Loading has been finished')
 
     @staticmethod
     def load(path):
@@ -337,23 +358,34 @@ class Model:
         if not self._path:
             self._path = deduce_model_file_name(self.model_id, self.model_version)
 
+        LOGGER.info('Saving model to {}'.format(self._path))
+
         # Save
         with TemporaryFolder('legion-model-save') as temp_directory:
             temp_file = os.path.join(temp_directory.path, 'result.zip')
             with zipfile.ZipFile(temp_file, 'w', self.ZIP_COMPRESSION) as stream:
                 # Add manifest file
+                LOGGER.debug('Saving manifest file to {}'.format(self.ZIP_FILE_INFO))
                 with open(os.path.join(temp_directory.path, self.ZIP_FILE_INFO), 'w') as info_file:
                     json.dump(meta_information_to_save, info_file)
                 stream.write(os.path.join(temp_directory.path, self.ZIP_FILE_INFO), self.ZIP_FILE_INFO)
 
                 # Add current properties state
+                LOGGER.debug('Saving current property values to {}'.format(self.ZIP_FILE_PROPERTIES))
                 with open(os.path.join(temp_directory.path, self.ZIP_FILE_PROPERTIES), 'w') as props_file:
                     json.dump(legion.model.properties.data, props_file)
                 stream.write(os.path.join(temp_directory.path, self.ZIP_FILE_PROPERTIES), self.ZIP_FILE_PROPERTIES)
 
+                # Add callback file
+                LOGGER.debug('Saving property update callback to {}'.format(self.ZIP_FILE_CALLBACK))
+                with open(os.path.join(temp_directory.path, self.ZIP_FILE_CALLBACK), 'wb') as callback_file:
+                    dill.dump(self._on_property_update_callback, callback_file, recurse=True)
+                stream.write(os.path.join(temp_directory.path, self.ZIP_FILE_CALLBACK), self.ZIP_FILE_CALLBACK)
+
                 # Add endpoints
                 for endpoint in self.endpoints.values():
                     path = self._build_endpoint_file_name(endpoint.name)
+                    LOGGER.debug('Saving endpoint {!r} to {}'.format(endpoint, path))
                     with open(os.path.join(temp_directory.path, path), 'wb') as endpoint_file:
                         dill.dump(endpoint, endpoint_file, recurse=True)
                     stream.write(os.path.join(temp_directory.path, path), path)
@@ -462,6 +494,28 @@ class Model:
         """
         self._export(apply_func, prepare_func, None, False, endpoint)
         return self
+
+    def get_on_property_update_callback(self):
+        """
+        Get registered callback or empty callback
+
+        :return: :py:class:`Callable[[], None]` -- callback function
+        """
+        if self._on_property_update_callback is None:
+            LOGGER.warning('Property update callback is empty - using lambda')
+            return lambda: None
+
+        return self._on_property_update_callback
+
+    def on_property_update(self, callable):
+        """
+        Get registered callback
+
+        :param callback: callback which will be called on each property update
+        :type callback: :py:class:`Callable[[], None]`
+        :return: None
+        """
+        self._on_property_update_callback = callable
 
     @property
     def model_id(self):
