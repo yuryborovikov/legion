@@ -336,7 +336,10 @@ class Enclave:
             ],
             liveness_probe=livenessprobe,
             readiness_probe=readinessprobe,
-            ports=[kubernetes.client.V1ContainerPort(container_port=5000, name='api', protocol='TCP')])
+            ports=[
+                kubernetes.client.V1ContainerPort(container_port=5000, name='api', protocol='TCP'),
+                kubernetes.client.V1ContainerPort(container_port=5090, name='stats', protocol='TCP'),
+            ])
 
         pod_template = kubernetes.client.V1PodTemplateSpec(
             metadata=kubernetes.client.V1ObjectMeta(labels=compatible_labels),
