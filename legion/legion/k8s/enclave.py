@@ -242,15 +242,20 @@ class Enclave:
             LOGGER.info('Analyzing properties storage {!r} for model {!r}'.format(storage, model_id))
             storage.load()
 
-            missed_properties = set(properties) - set(storage.keys())
+            storage_keys = set(storage.keys())
+            LOGGER.info('Storage already has keys: {!r}'.format(storage_keys))
 
-            for missed_property in missed_properties:
-                if missed_property not in default_values:
-                    raise Exception('Cannot find default value for property {}'.format(missed_property))
+            missed_properties = set(properties) - storage_keys
+            if missed_properties:
+                LOGGER.info('Storage has missed properties: {!r}'.format(missed_properties))
 
-                storage[missed_property] = default_values[missed_property]
-                LOGGER.info('Property {!r} has been set to default value {!r}'.format(missed_property,
-                                                                                      default_values[missed_property]))
+                for missed_property in missed_properties:
+                    if missed_property not in default_values:
+                        raise Exception('Cannot find default value for property {}'.format(missed_property))
+
+                    storage[missed_property] = default_values[missed_property]
+                    LOGGER.info('Property {!r} has been set to default value {!r}'
+                                .format(missed_property, default_values[missed_property]))
         else:
             LOGGER.info('Creating properties storage {!r} for model {!r} with default values'.format(storage, model_id))
             for k, v in default_values.items():
