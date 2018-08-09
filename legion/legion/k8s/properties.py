@@ -65,6 +65,9 @@ class K8SPropertyStorage:
         self._cache_ttl = cache_ttl  # type: int or None
 
         self._storage_name = legion.utils.normalize_name(storage_name, dns_1035=True)  # type: str
+        LOGGER.warning('Name of storage has been normalized from {!r} to {!r}'.format(
+            storage_name, self._storage_name
+        ))
 
         self._last_load_time = None  # type: float or None
         self._saved = False  # type: bool
