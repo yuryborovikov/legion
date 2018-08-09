@@ -245,6 +245,9 @@ class Enclave:
         storage_name = legion.utils.model_properties_storage_name(model_id, model_version)
         storage = legion.k8s.K8SConfigMapStorage(storage_name, self.namespace)
 
+        LOGGER.info('Found properties storages: {!r}. Checking storage name {!r}'.format(registered_storages,
+                                                                                         storage_name))
+
         if storage_name in registered_storages:
             LOGGER.info('Analyzing properties storage {!r} for model {!r}'.format(storage, model_id))
             storage.load()
