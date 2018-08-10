@@ -167,6 +167,7 @@ class Utils:
         else:
             raise Exception('Unexpected case happen!')
 
+    @staticmethod
     def wait_up_to_second(second, time_template=None):
         """
         Wait up to second then generate time from template
