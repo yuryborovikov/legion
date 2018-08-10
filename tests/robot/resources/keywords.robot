@@ -160,6 +160,11 @@ Run EDI scale with version
     [Return]              ${result}
 
     # --------- OTHER KEYWORDS SECTION -----------
+Build enclave EDGE URL
+    [Documentation]  build enclave EDGE URL
+    [Arguments]           ${enclave}
+    [Return]              ${HOST_PROTOCOL}://edge-${enclave}.${HOST_BASE_DOMAIN}
+
 Check model started
     [Documentation]  check if model run in container by http request
     [Arguments]           ${enclave}   ${model_id}  ${model_ver}
@@ -206,6 +211,7 @@ Test model pipeline
     Metric should be presented                              ${model_id}                   ${model_version}
     ${edi_state}=        Run      legionctl inspect --model-id ${model_id} --format column --edi ${HOST_PROTOCOL}://edi.${HOST_BASE_DOMAIN} --user ${SERVICE_ACCOUNT} --password ${SERVICE_PASSWORD}
     Log                  State of ${model_id} is ${edi_state}
+    [Return]             ${model_id}    ${model_version}
 
 Check if all enclave domains are registered
     [Arguments]             ${enclave}
