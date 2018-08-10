@@ -13,6 +13,7 @@ Test Setup          Choose cluster context            ${CLUSTER_NAME}
 Running, waiting and checks jobs in Jenkins
     [Documentation]  Build and check every example in Jenkins
     [Tags]  jenkins  models  enclave
+    Sleep    120s
     Connect to Jenkins endpoint
     Run, wait and check jenkins jobs for enclave     ${MODEL_TEST_ENCLAVE}
 
