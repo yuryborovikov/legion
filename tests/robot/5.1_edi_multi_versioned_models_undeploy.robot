@@ -53,7 +53,7 @@ Check EDI undeploy all model instances by version
 Check EDI undeploy all versioned model instances by id=*
     [Documentation]  Try to undeploy all models by id=* through EDI console
     [Tags]  edi  cli  enclave   multi_versions
-    ${resp}=        Run EDI undeploy without version    ${MODEL_TEST_ENCLAVE}    *
+    ${resp}=        Run EDI undeploy without version    ${MODEL_TEST_ENCLAVE}    '*'
                     Should Be Equal As Integers     ${resp.rc}         0
     ${resp}=        Run EDI inspect by model id     ${MODEL_TEST_ENCLAVE}   ${TEST_MODEL_ID}
                     Should Be Equal As Integers     ${resp.rc}              0
@@ -62,7 +62,7 @@ Check EDI undeploy all versioned model instances by id=*
 Check EDI undeploy all versioned model instances by versions=*
     [Documentation]  Try to undeploy all models by versions=* through EDI console
     [Tags]  edi  cli  enclave   multi_versions
-   ${resp}=         Run EDI undeploy with version   ${MODEL_TEST_ENCLAVE}   ${TEST_MODEL_ID}    *
+   ${resp}=         Run EDI undeploy with version   ${MODEL_TEST_ENCLAVE}   ${TEST_MODEL_ID}    '*'
                     Should Be Equal As Integers     ${resp.rc}         0
     ${resp}=        Run EDI inspect by model id     ${MODEL_TEST_ENCLAVE}   ${TEST_MODEL_ID}
                     Should Be Equal As Integers     ${resp.rc}              0

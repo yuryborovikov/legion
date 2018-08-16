@@ -45,7 +45,7 @@ Check EDI model inspect by model id and version return 1 model
 Check EDI model inspect by model id=* return all models
     [Documentation]  Try to inspect 2 models by all ids through EDI console
     [Tags]  edi  cli  enclave   multi_versions
-    ${resp}=        Run EDI inspect by model id    ${MODEL_TEST_ENCLAVE}    *
+    ${resp}=        Run EDI inspect by model id    ${MODEL_TEST_ENCLAVE}   '*'
                     Should Be Equal As Integers    ${resp.rc}         0
                     Should contain                 ${resp.stdout}     ${TEST_MODEL_IMAGE_1}
                     Should contain                 ${resp.stdout}     ${TEST_MODEL_IMAGE_2}
@@ -53,7 +53,7 @@ Check EDI model inspect by model id=* return all models
 Check EDI model inspect by model version=* return all models
     [Documentation]  Try to inspect 2 models by all versions through EDI console
     [Tags]  edi  cli  enclave   multi_versions
-    ${resp}=        Run EDI inspect by model id and model version    ${MODEL_TEST_ENCLAVE}   ${TEST_MODEL_ID}    *
+    ${resp}=        Run EDI inspect by model id and model version    ${MODEL_TEST_ENCLAVE}   ${TEST_MODEL_ID}    '*'
                     Should Be Equal As Integers    ${resp.rc}         0
                     Should contain                 ${resp.stdout}     ${TEST_MODEL_IMAGE_1}
                     Should contain                 ${resp.stdout}     ${TEST_MODEL_IMAGE_2}

@@ -3,17 +3,7 @@
 To fix bidirectional copy paste from windows to Ubuntu look for solution
 https://askubuntu.com/questions/22743/how-do-i-install-guest-additions-in-a-virtualbox-vm/22745#22745
 2. Install packages to new system:
-    * Java (JRE,JDK)
-    ```bash
-    sudo apt-get update
-    sudo apt-get install default-jre
-    sudo apt-get install default-jdk
-    sudo add-apt-repository ppa:webupd8team/java
-    sudo apt-get update
-    sudo apt-get install oracle-java8-installer
-    ```
-    
-    * Python 3.5+
+    * Python 3.6
     ```bash
     sudo add-apt-repository ppa:deadsnakes/ppa
     sudo apt-get update

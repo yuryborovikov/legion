@@ -63,7 +63,7 @@ Check EDI scale down 1 of 2 models with different versions but the same id
 Check EDI scale up all instances for 2 models(diff versions) by versions=*
     [Documentation]  Try to scale up 2 models with different versions but the same id by all versions through EDI console
     [Tags]  edi  cli  enclave   multi_versions
-    ${resp}=        Run EDI scale with version      ${MODEL_TEST_ENCLAVE}   ${TEST_MODEL_ID}    2   *
+    ${resp}=        Run EDI scale with version      ${MODEL_TEST_ENCLAVE}   ${TEST_MODEL_ID}    2   '*'
                     Should Be Equal As Integers     ${resp.rc}              0
                     Sleep                           10  # because no way to control explicitly scaling the model inside
     # TODO remove sleep
@@ -78,7 +78,7 @@ Check EDI scale up all instances for 2 models(diff versions) by versions=*
 Check EDI scale up all instances for 2 models(diff versions) by id=*
     [Documentation]  Try to scale up 2 models with different versions but the same id by all ids through EDI console
     [Tags]  edi  cli  enclave   multi_versions
-    ${resp}=        Run EDI scale                   ${MODEL_TEST_ENCLAVE}   *    2
+    ${resp}=        Run EDI scale                   ${MODEL_TEST_ENCLAVE}   '*'    2
                     Should Be Equal As Integers     ${resp.rc}              0
                     Sleep                           10  # because no way to control explicitly scaling the model inside
     # TODO remove sleep
