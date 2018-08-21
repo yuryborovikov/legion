@@ -121,17 +121,14 @@ class TestK8SPropertiesStorage(unittest2.TestCase):
 
         with legion_test.utils.ContextThread(listener):
             LOGGER.debug('Waiting before updating')
-            time.sleep(5)
 
-            self.assertEqual(len(events), 1)
+            self.assertTrue(legion_test.utils.wait_until(lambda: len(events) > 0, 1, 5))
             self.assertTupleEqual(events[0], (legion.k8s.EVENT_ADDED, {key: first_value}))
 
             storage_to_write[key] = second_value
             storage_to_write.save()
 
-            time.sleep(5)
-
-            self.assertEqual(len(events), 2)
+            self.assertTrue(legion_test.utils.wait_until(lambda: len(events) > 1, 1, 5))
             self.assertTupleEqual(events[1], (legion.k8s.EVENT_MODIFIED, {key: second_value}))
 
     @attr('k8s', 'props', 'watch')
@@ -160,17 +157,14 @@ class TestK8SPropertiesStorage(unittest2.TestCase):
 
         with legion_test.utils.ContextThread(listener):
             LOGGER.debug('Waiting before updating')
-            time.sleep(5)
 
-            self.assertEqual(len(events), 1)
+            self.assertTrue(legion_test.utils.wait_until(lambda: len(events) > 0, 1, 5))
             self.assertTupleEqual(events[0], (legion.k8s.EVENT_ADDED, {key: first_value}))
 
             storage_to_write[key] = second_value
             storage_to_write.save()
 
-            time.sleep(5)
-
-            self.assertEqual(len(events), 2)
+            self.assertTrue(legion_test.utils.wait_until(lambda: len(events) > 1, 1, 5))
             self.assertTupleEqual(events[1], (legion.k8s.EVENT_MODIFIED, {key: second_value}))
 
     @attr('k8s', 'props', 'props_config_map')
