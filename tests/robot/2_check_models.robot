@@ -27,13 +27,19 @@ Checking property update callback
 
     Log             Updating property to start value and invoking model with check
     Update model property key  ${MODEL_TEST_ENCLAVE}  ${model_id}  ${model_version}  ${MODEL_WITH_PROPS_PROP}  1
+
+    ${properties}=  Get model API properties  ${model_id}  ${model_version}  ${edge}
+    Should Be Equal As Integers     ${properties[MODEL_WITH_PROPS_PROP]}  1
+
     ${response}=    Invoke model API  ${model_id}  ${model_version}  ${edge}  ${MODEL_WITH_PROPS_ENDPOINT}  a=1  b=2
     Should Be Equal As Integers     ${response['result']}  30
 
-    Sleep  10s
-
     Log             Updating property to another value and invoking model with check
     Update model property key  ${MODEL_TEST_ENCLAVE}  ${model_id}  ${model_version}  ${MODEL_WITH_PROPS_PROP}  2
+
+    ${properties}=  Get model API properties  ${model_id}  ${model_version}  ${edge}
+    Should Be Equal As Integers     ${properties[MODEL_WITH_PROPS_PROP]}  2
+
     ${response}=    Invoke model API  ${model_id}  ${model_version}  ${edge}  ${MODEL_WITH_PROPS_ENDPOINT}  a=1  b=2
     Should Be Equal As Integers     ${response['result']}  300
 
