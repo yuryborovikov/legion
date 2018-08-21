@@ -41,13 +41,14 @@ SERVE_INVOKE_DEFAULT = '/api/model/{model_id}/{model_version}/invoke'
 SERVE_BATCH = '/api/model/{model_id}/{model_version}/batch/{endpoint}'
 SERVE_BATCH_DEFAULT = '/api/model/{model_id}/{model_version}/batch'
 SERVE_PROPERTIES = '/api/model/{model_id}/{model_version}/properties'
+SERVE_EMIT_PROPERTIES = '/api/model/{model_id}/{model_version}/emit-propertis-update'
 SERVE_HEALTH_CHECK = '/healthcheck'
 
 ALL_URLS = SERVE_ROOT, \
            SERVE_INFO, \
            SERVE_INVOKE, SERVE_INVOKE_DEFAULT, \
            SERVE_BATCH, SERVE_BATCH_DEFAULT, \
-           SERVE_PROPERTIES, \
+           SERVE_PROPERTIES, SERVE_EMIT_PROPERTIES, \
            SERVE_HEALTH_CHECK
 
 
@@ -179,6 +180,25 @@ def model_properties(model_id, model_version):
     model = app.config['model']
 
     return jsonify(model.properties.data)
+
+
+@blueprint.route(SERVE_EMIT_PROPERTIES.format(model_id='<model_id>', model_version='<model_version>'))
+def emit_properties_update_signal(model_id, model_version):
+    """
+    Emit signal for properties update
+
+    :param model_id: model id
+    :type model_id: str
+    :param model_version: model version
+    :type model_version: str
+    :return: :py:class:`Flask.Response` -- model properties
+    """
+    validate_model_id(model_id, model_version)
+
+    model = app.config['model']
+    model.properties.emit_update_signal()
+
+    return jsonify(status=True)
 
 
 def build_sitemap():

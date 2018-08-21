@@ -427,6 +427,21 @@ class K8SPropertyStorage:
                 self.load()
                 yield (event_type, self.data)
 
+    def emit_update_signal(self):
+        """
+        Emit signal of properties update to model
+
+        :return: None
+        """
+        try:
+            callback = self._on_property_update_callback_getter()
+            LOGGER.debug('Invoking callback {!r} (id: {})...'.format(callback, id(callback)))
+            invoke_result = callback()
+            LOGGER.debug('Result of invocation: {!r}'.format(invoke_result))
+        except Exception as property_update_callback_invoke_exception:
+            LOGGER.exception('Cannot invoke model update callback',
+                             exc_info=property_update_callback_invoke_exception)
+
     def update_thread(self):
         """
         Process update callback logic
@@ -436,14 +451,8 @@ class K8SPropertyStorage:
         LOGGER.info('Properties watch thread has been started')
         for event, new_data in self.watch():
             LOGGER.info('Model have got information that properties storage had got update: {}'.format(event))
-            try:
-                callback = self._on_property_update_callback_getter()
-                LOGGER.debug('Invoking callback {!r} (id: {})...'.format(callback, id(callback)))
-                invoke_result = callback()
-                LOGGER.debug('Result of invocation: {!r}'.format(invoke_result))
-            except Exception as property_update_callback_invoke_exception:
-                LOGGER.exception('Cannot invoke model update callback',
-                                 exc_info=property_update_callback_invoke_exception)
+            self.emit_update_signal()
+
 
     def set_update_callback(self, callback_getter):
         """
