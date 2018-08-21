@@ -40,12 +40,14 @@ SERVE_INVOKE = '/api/model/{model_id}/{model_version}/invoke/{endpoint}'
 SERVE_INVOKE_DEFAULT = '/api/model/{model_id}/{model_version}/invoke'
 SERVE_BATCH = '/api/model/{model_id}/{model_version}/batch/{endpoint}'
 SERVE_BATCH_DEFAULT = '/api/model/{model_id}/{model_version}/batch'
+SERVE_PROPERTIES = '/api/model/{model_id}/{model_version}/properties'
 SERVE_HEALTH_CHECK = '/healthcheck'
 
 ALL_URLS = SERVE_ROOT, \
            SERVE_INFO, \
            SERVE_INVOKE, SERVE_INVOKE_DEFAULT, \
            SERVE_BATCH, SERVE_BATCH_DEFAULT, \
+           SERVE_PROPERTIES, \
            SERVE_HEALTH_CHECK
 
 
@@ -161,6 +163,24 @@ def healthcheck():
     return 'OK'
 
 
+@blueprint.route(SERVE_PROPERTIES.format(model_id='<model_id>', model_version='<model_version>'))
+def model_properties(model_id, model_version):
+    """
+    Get model properties
+
+    :param model_id: model id
+    :type model_id: str
+    :param model_version: model version
+    :type model_version: str
+    :return: :py:class:`Flask.Response` -- model properties
+    """
+    validate_model_id(model_id, model_version)
+
+    model = app.config['model']
+
+    return jsonify(model.properties.data)
+
+
 def build_sitemap():
     """
     Build list of valid application URLs
@@ -234,6 +254,9 @@ def init_model(application):
     if legion.k8s.utils.is_code_run_in_cluster() and model_container.required_props:
         legion.model.properties.load()
         legion.model.properties.start_update_watcher()
+    else:
+        LOGGER.info('Ignoring running of update watcher because model is not ran in a cluster '
+                    'or model does not contain required props')
 
 
 def create_application():
