@@ -44,3 +44,22 @@ class Model:
             raise Exception('Returned wrong status code: {}'.format(response.status_code))
 
         return response.json()
+
+    @staticmethod
+    def get_model_api_properties(model_id, model_version, edge):
+        """
+        Invoke model through API
+
+        :param model_id: model ID
+        :param model_version: model version
+        :param edge: edge url
+        :return: dict -- response
+        """
+        response = requests.get(
+            '{}/api/model/{}/{}/invoke'.format(edge, model_id, model_version)
+        )
+
+        if response.status_code != 200:
+            raise Exception('Returned wrong status code: {}'.format(response.status_code))
+
+        return response.json()
