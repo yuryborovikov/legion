@@ -214,7 +214,7 @@ class Model:
         """
         Get model properties
 
-        :return:
+        :return: :py:class:`legion.k8s.K8SConfigMapStorage` -- model properties storage
         """
         return self._properties
 
