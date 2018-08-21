@@ -30,6 +30,8 @@ Checking property update callback
     ${response}=    Invoke model API  ${model_id}  ${model_version}  ${edge}  ${MODEL_WITH_PROPS_ENDPOINT}  a=1  b=2
     Should Be Equal As Integers     ${response['result']}  30
 
+    Sleep  10s
+
     Log             Updating property to another value and invoking model with check
     Update model property key  ${MODEL_TEST_ENCLAVE}  ${model_id}  ${model_version}  ${MODEL_WITH_PROPS_PROP}  2
     ${response}=    Invoke model API  ${model_id}  ${model_version}  ${edge}  ${MODEL_WITH_PROPS_ENDPOINT}  a=1  b=2
