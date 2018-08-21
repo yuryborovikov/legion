@@ -453,7 +453,6 @@ class K8SPropertyStorage:
             LOGGER.info('Model have got information that properties storage had got update: {}'.format(event))
             self.emit_update_signal()
 
-
     def set_update_callback(self, callback_getter):
         """
         Set update callback getter and start thread (thread starts only once)
