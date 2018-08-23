@@ -41,8 +41,7 @@ import legion.k8s.services
 import legion.k8s.enclave
 from legion.k8s.definitions import \
     LEGION_COMPONENT_LABEL, LEGION_COMPONENT_NAME_MODEL, \
-    LEGION_SYSTEM_LABEL, LEGION_SYSTEM_VALUE, \
-    DOMAIN_MODEL_ID, DOMAIN_MODEL_VERSION
+    LEGION_SYSTEM_LABEL, LEGION_SYSTEM_VALUE
 from docker_registry_client import DockerRegistryClient
 from typing import NamedTuple
 
@@ -214,14 +213,14 @@ def get_meta_from_docker_labels(labels):
         normalize_name(model_version)
     )
 
-    labels = {}
-    labels[DOMAIN_MODEL_ID] = model_id
-    labels[DOMAIN_MODEL_VERSION] = model_version
-    labels[LEGION_COMPONENT_LABEL] = LEGION_COMPONENT_NAME_MODEL
-    labels[LEGION_SYSTEM_LABEL] = LEGION_SYSTEM_VALUE
-    labels = {k: normalize_name(v, dns_1035=True) for k, v in labels.items()}
+    kubernetes_labels = {}
+    kubernetes_labels[legion.containers.headers.DOMAIN_MODEL_ID] = model_id
+    kubernetes_labels[legion.containers.headers.DOMAIN_MODEL_VERSION] = model_version
+    kubernetes_labels[LEGION_COMPONENT_LABEL] = LEGION_COMPONENT_NAME_MODEL
+    kubernetes_labels[LEGION_SYSTEM_LABEL] = LEGION_SYSTEM_VALUE
+    kubernetes_labels = {k: normalize_name(v, dns_1035=True) for k, v in kubernetes_labels.items()}
 
-    return normalize_name(k8s_name, dns_1035=True), labels, model_id, model_version
+    return normalize_name(k8s_name, dns_1035=True), kubernetes_labels, model_id, model_version
 
 
 def parse_docker_image_url(image_url):
