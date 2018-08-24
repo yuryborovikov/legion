@@ -213,17 +213,14 @@ def get_meta_from_docker_labels(labels):
         normalize_name(model_version)
     )
 
-    compatible_labels = {
-        normalize_name(k, kubernetes_compatible=True): normalize_name(v, kubernetes_compatible=True)
-        for k, v in
-        labels.items()
-        if k.startswith(legion.containers.headers.DOMAIN_PREFIX)
-    }
+    kubernetes_labels = {}
+    kubernetes_labels[legion.containers.headers.DOMAIN_MODEL_ID] = model_id
+    kubernetes_labels[legion.containers.headers.DOMAIN_MODEL_VERSION] = model_version
+    kubernetes_labels[LEGION_COMPONENT_LABEL] = LEGION_COMPONENT_NAME_MODEL
+    kubernetes_labels[LEGION_SYSTEM_LABEL] = LEGION_SYSTEM_VALUE
+    kubernetes_labels = {k: normalize_name(v, dns_1035=True) for k, v in kubernetes_labels.items()}
 
-    compatible_labels[LEGION_COMPONENT_LABEL] = LEGION_COMPONENT_NAME_MODEL
-    compatible_labels[LEGION_SYSTEM_LABEL] = LEGION_SYSTEM_VALUE
-
-    return normalize_name(k8s_name, dns_1035=True), compatible_labels, model_id, model_version
+    return normalize_name(k8s_name, dns_1035=True), kubernetes_labels, model_id, model_version
 
 
 def parse_docker_image_url(image_url):

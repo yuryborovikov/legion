@@ -224,14 +224,6 @@ def generate_docker_labels_for_image(model_file, model_id, args):
         legion.containers.headers.DOMAIN_MODEL_PROPERTY_VALUES: json.dumps(container.properties.data)
     }
 
-    for key, value in container.meta_information.items():
-        if hasattr(value, '__iter__') and not isinstance(value, str):
-            formatted_value = ', '.join(item for item in value)
-        else:
-            formatted_value = str(value)
-
-        base[legion.containers.headers.DOMAIN_PREFIX + key] = formatted_value
-
     return base
 
 
