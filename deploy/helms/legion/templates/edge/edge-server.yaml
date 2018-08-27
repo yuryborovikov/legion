@@ -18,6 +18,7 @@ spec:
         component: "{{ .Release.Name }}-edge"
     spec:
       serviceAccountName: "{{ .Release.Name }}-edge"
+      shareProcessNamespace: true
       containers:
       - name: nginx
         image: "{{ .Values.edge.image.repository }}:{{ .Values.edge.image.tag }}"
@@ -37,6 +38,9 @@ spec:
             port: 80
           initialDelaySeconds: 10
           periodSeconds: 3
+      - name: templater
+        image: "{{ .Values.edge.templater_image.repository }}:{{ .Values.edge.templater_image.tag }}"
+        imagePullPolicy: "{{ .Values.edge.image.pullPolicy }}"
       - name: dns
         image: "janeczku/go-dnsmasq:release-1.0.7"
         args:

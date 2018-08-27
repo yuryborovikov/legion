@@ -32,6 +32,10 @@ edge:
     repository: "{{ nexus_docker_repo }}/legion/k8s-edge"
     tag: "{{ base_version }}-{{ local_version }}"
 
+  templater_image:
+    repository: "{{ nexus_docker_repo }}/legion/base-python-image"
+    tag: "{{ base_version }}-{{ local_version }}"
+
   ingress:
     tls:
       enabled: {% if use_https == "yes" %}true{% else %}false{% endif %}
