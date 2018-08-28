@@ -194,6 +194,7 @@ class Model:
         self._path = None  # type: str or None
 
         self._on_property_update_callback = None  # type: typing.Callable[[], None] or None
+        self._on_property_update_callback_loaded = False  # type: bool
 
         storage_name = model_properties_storage_name(self.model_id, self.model_version)
         self._properties = legion.k8s.K8SConfigMapStorage(storage_name,
@@ -228,6 +229,7 @@ class Model:
         """
         self._path = path
         self._endpoints = None
+        self._on_property_update_callback_loaded = False
         LOGGER.info('Loading model from {}'.format(path))
 
         LOGGER.debug('Loading metadata from {}'.format(Model.ZIP_FILE_INFO))
@@ -241,11 +243,6 @@ class Model:
         with extract_archive_item(path, Model.ZIP_FILE_PROPERTIES) as properties_path:
             with open(properties_path, 'r') as properties_file:
                 self.properties.data = json.load(properties_file)
-
-        LOGGER.debug('Loading property update callback from {}'.format(Model.ZIP_FILE_CALLBACK))
-        with extract_archive_item(path, Model.ZIP_FILE_CALLBACK) as callback_path:
-            with open(callback_path, 'rb') as callback_file:
-                self._on_property_update_callback = dill.load(callback_file)
 
         LOGGER.debug('Loading has been finished')
 
@@ -284,6 +281,17 @@ class Model:
         :rtype: str
         """
         return endpoint_name
+
+    def load_properties_update_callback(self):
+        """
+        Load properties update callback from binary
+
+        :return: deserialized model properties update callback
+        :rtype: :py:class:`typing.Callable[[], None]`
+        """
+        with extract_archive_item(self._path, self.ZIP_FILE_CALLBACK) as callback_path:
+            with open(callback_path, 'rb') as callback_file:
+                return dill.load(callback_file)
 
     def load_endpoint(self, endpoint_name):
         """
@@ -379,7 +387,7 @@ class Model:
                 # Add callback file
                 LOGGER.debug('Saving property update callback to {}'.format(self.ZIP_FILE_CALLBACK))
                 with open(os.path.join(temp_directory.path, self.ZIP_FILE_CALLBACK), 'wb') as callback_file:
-                    dill.dump(self._on_property_update_callback, callback_file, recurse=True)
+                    dill.dump(self.get_on_property_update_callback(), callback_file, recurse=True)
                 stream.write(os.path.join(temp_directory.path, self.ZIP_FILE_CALLBACK), self.ZIP_FILE_CALLBACK)
 
                 # Add endpoints
@@ -497,10 +505,14 @@ class Model:
 
     def get_on_property_update_callback(self):
         """
-        Get registered callback or empty callback
+        Get or lazy load registered callback or empty callback
 
         :return: :py:class:`Callable[[], None]` -- callback function
         """
+        if not self._on_property_update_callback_loaded:
+            self._on_property_update_callback = self.load_properties_update_callback()
+            self._on_property_update_callback_loaded = True
+
         if self._on_property_update_callback is None:
             LOGGER.warning('Property update callback is empty - using lambda')
             return lambda: None
@@ -509,13 +521,14 @@ class Model:
 
     def on_property_update(self, callable):
         """
-        Get registered callback
+        Set property update callback
 
         :param callback: callback which will be called on each property update
         :type callback: :py:class:`Callable[[], None]`
         :return: None
         """
         self._on_property_update_callback = callable
+        self._on_property_update_callback_loaded = True
 
     @property
     def model_id(self):
