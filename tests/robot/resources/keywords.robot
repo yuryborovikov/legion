@@ -4,6 +4,7 @@ Resource            variables.robot
 Library             String
 Library             OperatingSystem
 Library             Collections
+Library             Process
 Library             legion_test.robot.K8s
 Library             legion_test.robot.Jenkins
 Library             legion_test.robot.Utils
