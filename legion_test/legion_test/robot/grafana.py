@@ -107,6 +107,7 @@ class Grafana:
             'maxDataPoints': 1000
         }
 
+        print('url = \'{}\', body = \'{}\', headers = \'{}\', cookies = \'{}\''.format(url, payload, headers, get_session_cookies()))
         response = requests.post(url, data=payload, headers=headers, auth=auth, cookies=get_session_cookies())
         print('Loading {} metrics. Data: {}'.format(target, response.text))
 

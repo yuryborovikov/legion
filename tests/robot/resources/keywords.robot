@@ -204,8 +204,9 @@ Test model pipeline
     Dashboard should exists                                 ${model_id}
     Sleep                15s
     Metric should be presented                              ${model_id}                   ${model_version}
-    ${edi_state}=        Run      legionctl --verbose inspect --model-id ${model_id} --format column --edi ${HOST_PROTOCOL}://edi.${HOST_BASE_DOMAIN} --user ${SERVICE_ACCOUNT} --password ${SERVICE_PASSWORD}    shell=True
+    ${edi_state}=        Run Process   legionctl --verbose inspect --model-id ${model_id} --format column --edi ${HOST_PROTOCOL}://edi.${HOST_BASE_DOMAIN} --user ${SERVICE_ACCOUNT} --password ${SERVICE_PASSWORD}    shell=True
     Log                  State of ${model_id} is ${edi_state.stdout}
+    Log                  ${edi_state.stderr}
 
 Check if all enclave domains are registered
     [Arguments]             ${enclave}
