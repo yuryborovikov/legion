@@ -151,7 +151,7 @@ def runNotebook(notebookName) {
     export CONTAINER_DIR="`pwd`"
     cd ${env.ROOT_DIR}
     jupyter nbconvert --execute "${env.NOTEBOOK_NAME}" --stdout > notebook.html
-    cp notebook.html "\$CONTAINER_DIR"
+    cp notebook.html "\$CONTAINER_DIR" || true
     """
 
     sleep time: 1, unit: 'SECONDS'
