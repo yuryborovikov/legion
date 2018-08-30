@@ -227,8 +227,7 @@ def deploy(Map deployParams=null) {
     count = deployParams.get('count', null)
     livenessTimeout = deployParams.get('livenessTimeout', null)
     readinessTimeout = deployParams.get('readinessTimeout', null)
-    deployTimeout = deployParams.get('deployTimeout', null)
-    undeployTimeout = deployParams.get('undeployTimeout', null)
+    timeout = deployParams.get('timeout', null)
 
     env.MODEL_ID = modelId()
     env.MODEL_FILE_NAME = modelFileName()
@@ -248,11 +247,10 @@ def deploy(Map deployParams=null) {
     if (readinessTimeout)
         deployArguments += "--readinesstimeout=${readinessTimeout} "
 
-    if (deployTimeout)
+    if (timeout){
         deployArguments += "--timeout=${deployTimeout} "
-
-    if (undeployTimeout)
         undeployArguments += "--timeout=${undeployTimeout} "
+    }
 
     sh """
     legionctl undeploy --ignore-not-found ${undeployArguments} ${env.MODEL_ID}
