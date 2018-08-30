@@ -222,20 +222,41 @@ def build() {
 }
 def deploy(Map deployParams=null) {
     if (deployParams == null)
-    deployParams = [:]
+        deployParams = [:]
 
-    count = deployParams.get('count', 1)
-    livenesstimeout = deployParams.get('livenesstimeout', 2)
-    readinesstimeout = deployParams.get('readinesstimeout', 2)
+    count = deployParams.get('count', null)
+    livenessTimeout = deployParams.get('livenessTimeout', null)
+    readinessTimeout = deployParams.get('readinessTimeout', null)
+    deployTimeout = deployParams.get('deployTimeout', null)
+    undeployTimeout = deployParams.get('undeployTimeout', null)
+
     env.MODEL_ID = modelId()
     env.MODEL_FILE_NAME = modelFileName()
 
     echo 'MODEL_ID = ' + env.MODEL_ID
     echo 'MODEL_FILE_NAME = ' + env.MODEL_FILE_NAME
 
+    deployArguments = ""
+    undeployArguments = ""
+
+    if (count)
+        deployArguments += "--scale=${count} "
+
+    if (livenessTimeout)
+        deployArguments += "--livenesstimeout=${livenessTimeout} "
+
+    if (readinessTimeout)
+        deployArguments += "--readinesstimeout=${readinessTimeout} "
+
+    if (deployTimeout)
+        deployArguments += "--timeout=${deployTimeout} "
+
+    if (undeployTimeout)
+        undeployArguments += "--timeout=${undeployTimeout} "
+
     sh """
-    legionctl undeploy --ignore-not-found ${env.MODEL_ID}
-    legionctl deploy ${env.EXTERNAL_IMAGE_NAME} --livenesstimeout=${livenesstimeout} --readinesstimeout=${readinesstimeout}
+    legionctl undeploy --ignore-not-found ${undeployArguments} ${env.MODEL_ID}
+    legionctl deploy ${deployArguments} ${env.EXTERNAL_IMAGE_NAME}
     legionctl inspect
     """
 }
