@@ -248,8 +248,8 @@ def deploy(Map deployParams=null) {
         deployArguments += "--readinesstimeout=${readinessTimeout} "
 
     if (timeout){
-        deployArguments += "--timeout=${deployTimeout} "
-        undeployArguments += "--timeout=${undeployTimeout} "
+        deployArguments += "--timeout=${timeout} "
+        undeployArguments += "--timeout=${timeout} "
     }
 
     sh """
