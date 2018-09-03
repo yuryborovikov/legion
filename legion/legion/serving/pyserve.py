@@ -41,7 +41,7 @@ SERVE_INVOKE_DEFAULT = '/api/model/{model_id}/{model_version}/invoke'
 SERVE_BATCH = '/api/model/{model_id}/{model_version}/batch/{endpoint}'
 SERVE_BATCH_DEFAULT = '/api/model/{model_id}/{model_version}/batch'
 SERVE_PROPERTIES = '/api/model/{model_id}/{model_version}/properties'
-SERVE_EMIT_PROPERTIES = '/api/model/{model_id}/{model_version}/emit-propertis-update'
+SERVE_EMIT_PROPERTIES = '/api/model/{model_id}/{model_version}/emit-properties-update'
 SERVE_HEALTH_CHECK = '/healthcheck'
 
 ALL_URLS = SERVE_ROOT, \
