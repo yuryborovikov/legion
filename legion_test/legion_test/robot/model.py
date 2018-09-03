@@ -56,7 +56,7 @@ class Model:
         :return: dict -- response
         """
         response = requests.get(
-            '{}/api/model/{}/{}/invoke'.format(edge, model_id, model_version)
+            '{}/api/model/{}/{}/properties'.format(edge, model_id, model_version)
         )
 
         if response.status_code != 200:
