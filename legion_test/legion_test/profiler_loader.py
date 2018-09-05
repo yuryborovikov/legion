@@ -89,5 +89,10 @@ def get_variables(arg=None):
             data['dex']['config']['staticPasswords']:
         static_user = data['dex']['config']['staticPasswords'][0]
         init_session_id(static_user['email'], static_user['password'], data.get('test_base_domain', data['base_domain']))
+        variables['STATIC_USER_EMAIL'] = static_user['email']
+        variables['STATIC_USER_PASS'] = static_user['password']
+    else:
+        variables['STATIC_USER_EMAIL'] = ''
+        variables['STATIC_USER_PASS'] = ''
 
     return variables
