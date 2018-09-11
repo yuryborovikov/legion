@@ -339,6 +339,8 @@ node {
                     UploadDockerImage('test-bare-model-api-model-1')
                 }, 'Upload Bare model 2': {
                     UploadDockerImage('test-bare-model-api-model-2')
+                }, 'Upload Bare model 3': {
+                    UploadDockerImage('test-bare-model-api-model-3')
                 }, 'Upload Edi Docker image': {
                     UploadDockerImage('k8s-edi')
                 }, 'Upload Airflow Docker image': {
