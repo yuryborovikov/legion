@@ -301,7 +301,12 @@ node {
                     cd k8s/test-bare-model-api/model-2
                     docker build --build-arg version="${Globals.buildVersion}" -t legion/test-bare-model-api-model-2:${Globals.buildVersion} ${Globals.dockerLabels} .
                     """
-                }, 'Build Edi Docker image': {
+                }, 'Build Bare model 3': {
+                    sh """
+                    cd k8s/test-bare-model-api/model-3
+                    docker build --build-arg version="${Globals.buildVersion}" -t legion/test-bare-model-api-model-3:${Globals.buildVersion} ${Globals.dockerLabels} .
+                    """
+                },'Build Edi Docker image': {
                     sh """
                     cd k8s/edi
                     docker build --build-arg version="${Globals.buildVersion}" --build-arg pip_extra_index_params="--extra-index-url ${params.PyPiRepository}" --build-arg pip_legion_version_string="==${Globals.buildVersion}" -t legion/k8s-edi:${Globals.buildVersion} ${Globals.dockerLabels} .
