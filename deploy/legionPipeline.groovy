@@ -184,7 +184,7 @@ def runRobotTests(tags="") {
             kops export kubecfg --name $CLUSTER_NAME --state $CLUSTER_STATE_STORE
             PATH=../../.venv/bin:$PATH DISPLAY=:99 \
             PROFILE=$Profile LEGION_VERSION=$LegionVersion \
-            ../../.venv/bin/python3 ../../.venv/bin/pabot --verbose --listener legion_test.process_reporter -v PATH_TO_PROFILES_DIR:$PATH_TO_PROFILES_DIR $robot_tags --processes 4 --outputdir . tests/**/*.robot || true
+            ../../.venv/bin/python3 ../../.venv/bin/pabot --verbose --processes 4 --variable PATH_TO_PROFILES_DIR:$PATH_TO_PROFILES_DIR --listener legion_test.process_reporter $robot_tags --outputdir . tests/**/*.robot || true
 
             echo "Starting python tests"
             cd ../python
