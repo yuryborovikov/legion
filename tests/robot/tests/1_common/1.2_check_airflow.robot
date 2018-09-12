@@ -1,7 +1,8 @@
 *** Settings ***
 Documentation       Legion stack operational check
-Resource            resources/keywords.robot
-Resource            resources/variables.robot
+Resource            ../../resources/keywords.robot
+Resource            ../../resources/variables.robot
+Variables           ../../load_variables_from_profiles.py    ${PATH_TO_PROFILES_DIR}
 Library             legion_test.robot.Utils
 
 *** Test Cases ***

@@ -59,8 +59,9 @@ def init_session_id(login: str, password: str, cluster_host: str) -> None:
             response = session.post(AUTHENTICATION_PATH.format(cluster_host, request_id),
                                 {PARAM_NAME_LOGIN: login, PARAM_NAME_PASSWORD: password})
             if response.status_code != 200:
-                raise IOError('Unable to authorise, got {} http code'
-                              .format(response.status_code))
+                raise IOError('Unable to authorise, got {} http code from {} for the query {}, response {}'
+                              .format(response.status_code, auth_endpoint_url.format(cluster_host), AUTHENTICATION_PATH.format(cluster_host, request_id),
+                                {PARAM_NAME_LOGIN: login, PARAM_NAME_PASSWORD: password}, response.text))
 
         for cookie_name in session.cookies.keys():
             if cookie_name.startswith(SESSION_ID_COOKIE_NAMES):
@@ -81,6 +82,7 @@ def get_session_cookies():
     :return: cookies dict or empty dict if Session ID wasn't found
     """
     return _session_cookies
+
 
 def get_jenkins_credentials():
     """Get credentials (username and API Token) for Jenkins API,

@@ -203,6 +203,7 @@ Wait all test Jenkins jobs are finished
     \   Wait Jenkins job     DYNAMIC MODEL ${model_name}   600
 
 Check all test models are successful and have metrics
+    [Arguments]             ${enclave}
     :FOR  ${model_name}  IN  @{JENKINS_JOBS}
     \   Log                  Checking model: ${model_name}
     \   Last Jenkins job is successful                          DYNAMIC MODEL ${model_name}
