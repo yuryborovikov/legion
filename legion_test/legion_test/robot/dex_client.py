@@ -30,6 +30,7 @@ JENKINS_API_TOKEN_REGEX = re.compile('<input [^>]*id="apiToken"[^>]*value="([^"]
 _session_cookies = {}
 _jenkins_credentials = None
 
+
 def init_session_id(login: str, password: str, cluster_host: str) -> None:
     """Initialize Session ID value from a Cookie after authentication.
 

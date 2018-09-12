@@ -191,43 +191,42 @@ Verify model info from edi
     Should Be Equal  ${target_model[4]}    ${scale_num}       invalid desired scale
 #    Should Be Empty  ${target_model[5]}                       got some errors ${target_model[5]}
 
-Run and wait Jenkins job
-    [Arguments]          ${model_name}                      ${enclave}
-    Log                  Start running model: ${model_name}
-    Run Jenkins job                                         DYNAMIC MODEL ${model_name}   Enclave=${enclave}
-    Log                  Waiting for running model: ${model_name}
-    Wait Jenkins job                                        DYNAMIC MODEL ${model_name}   600
+Run all test Jenkins jobs for enclave
+    [Arguments]             ${enclave}
+    :FOR  ${model_name}  IN  @{JENKINS_JOBS}
+    \   Log                  Start running model: ${model_name}
+    \   Run Jenkins job      DYNAMIC MODEL ${model_name}   Enclave=${enclave}
 
-Test model pipeline
-    [Arguments]          ${model_name}                      ${enclave}=${CLUSTER_NAMESPACE}
-    Run and wait Jenkins job                                ${model_name}        ${enclave}
-    Last Jenkins job is successful                          DYNAMIC MODEL ${model_name}
-    Jenkins artifact present                                DYNAMIC MODEL ${model_name}   notebook.html
-    ${model_meta} =      Jenkins log meta information       DYNAMIC MODEL ${model_name}
-    Log                  Model meta is ${model_meta}
-    ${model_path} =      Get From Dictionary                ${model_meta}                 modelPath
-    ${model_id} =        Get From Dictionary                ${model_meta}                 modelId
-    ${model_version} =   Get From Dictionary                ${model_meta}                 modelVersion
-    ${model_path} =	     Get Regexp Matches	                ${model_path}                 (.*)://[^/]+/(?P<path>.*)   path
-    ${model_url} =       Set Variable                       ${HOST_PROTOCOL}://nexus.${HOST_BASE_DOMAIN}/${model_path[0]}
-    Log                  External model URL is ${model_url}
-    Check remote file exists                                ${model_url}                  ${SERVICE_ACCOUNT}          jonny
-    Connect to enclave Grafana                              ${enclave}
-    Dashboard should exists                                 ${model_id}
-    Sleep                15s
-    Metric should be presented                              ${model_id}                   ${model_version}
-    ${edi_state}=        Run      legionctl inspect --model-id ${model_id} --format column --edi ${HOST_PROTOCOL}://edi.${HOST_BASE_DOMAIN} --user ${SERVICE_ACCOUNT} --password ${SERVICE_PASSWORD}
-    Log                  State of ${model_id} is ${edi_state}
+Wait all test Jenkins jobs are finished
+    :FOR  ${model_name}  IN  @{JENKINS_JOBS}
+    \   Log                  Waiting for running model: ${model_name}
+    \   Wait Jenkins job     DYNAMIC MODEL ${model_name}   600
+
+Check all test models are successful and have metrics
+    :FOR  ${model_name}  IN  @{JENKINS_JOBS}
+    \   Log                  Checking model: ${model_name}
+    \   Last Jenkins job is successful                          DYNAMIC MODEL ${model_name}
+    \   Jenkins artifact present                                DYNAMIC MODEL ${model_name}   notebook.html
+    \   ${model_meta} =      Jenkins log meta information       DYNAMIC MODEL ${model_name}
+    \   Log                  Model meta is ${model_meta}
+    \   ${model_path} =      Get From Dictionary                ${model_meta}                 modelPath
+    \   ${model_id} =        Get From Dictionary                ${model_meta}                 modelId
+    \   ${model_version} =   Get From Dictionary                ${model_meta}                 modelVersion
+    \   ${model_path} =	     Get Regexp Matches	                ${model_path}                 (.*)://[^/]+/(?P<path>.*)   path
+    \   ${model_url} =       Set Variable                       ${HOST_PROTOCOL}://nexus.${HOST_BASE_DOMAIN}/${model_path[0]}
+    \   Log                  External model URL is ${model_url}
+    \   Check remote file exists                                ${model_url}                  ${SERVICE_ACCOUNT}          jonny
+    \   Connect to enclave Grafana                              ${enclave}
+    \   Dashboard should exists                                 ${model_id}
+    \   Sleep                15s
+    \   Metric should be presented                              ${model_id}                   ${model_version}
+    \   ${edi_state}=        Run      legionctl inspect --model-id ${model_id} --format column --edi ${HOST_PROTOCOL}://edi.${HOST_BASE_DOMAIN} --user ${SERVICE_ACCOUNT} --password ${SERVICE_PASSWORD}
+    \   Log                  State of ${model_id} is ${edi_state}
 
 Check if all enclave domains are registered
     [Arguments]             ${enclave}
     :FOR    ${enclave_subdomain}    IN    @{ENCLAVE_SUBDOMAINS}
     \   Check domain exists  ${enclave_subdomain}-${enclave}.${HOST_BASE_DOMAIN}
-
-Run, wait and check jenkins jobs for enclave
-    [Arguments]             ${enclave}
-    :FOR  ${model_name}  IN  @{JENKINS_JOBS}
-    \    Test model pipeline    ${model_name}    ${enclave}
 
     # --------- TEMPLATE KEYWORDS SECTION -----------
 
