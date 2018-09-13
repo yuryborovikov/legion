@@ -173,6 +173,7 @@ def runRobotTests(tags="") {
 
             PATH_TO_PROFILES_DIR="${PROFILES_PATH:-../../deploy/profiles}/"
             PATH_TO_PROFILE_FILE="${PATH_TO_PROFILES_DIR}$Profile.yml"
+            PATH_TO_COOKIES="${PATH_TO_PROFILES_DIR}cookies.dat"
             CLUSTER_NAME=$(yq -r .cluster_name $PATH_TO_PROFILE_FILE)
             CLUSTER_STATE_STORE=$(yq -r .state_store $PATH_TO_PROFILE_FILE)
             echo "Loading kubectl config from $CLUSTER_STATE_STORE for cluster $CLUSTER_NAME"
@@ -184,6 +185,7 @@ def runRobotTests(tags="") {
             kops export kubecfg --name $CLUSTER_NAME --state $CLUSTER_STATE_STORE
             PATH=../../.venv/bin:$PATH DISPLAY=:99 \
             PROFILE=$Profile LEGION_VERSION=$LegionVersion \
+            ./jenkins_dex_client > $PATH_TO_COOKIES
             ../../.venv/bin/python3 ../../.venv/bin/pabot --verbose --processes 4 --variable PATH_TO_PROFILES_DIR:$PATH_TO_PROFILES_DIR --listener legion_test.process_reporter $robot_tags --outputdir . tests/**/*.robot || true
 
             echo "Starting python tests"

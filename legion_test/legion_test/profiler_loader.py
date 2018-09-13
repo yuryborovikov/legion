@@ -24,6 +24,7 @@ from legion_test.robot.dex_client import init_session_id, get_session_cookies, g
 
 PROFILE_ENVIRON_KEY = 'PROFILE'
 PATH_TO_PROFILES_DIR = 'PATH_TO_PROFILES_DIR'
+PATH_TO_COOKIES_FILE = 'PATH_TO_COOKIES'
 CREDENTIAL_SECRETS_ENVIRONMENT_KEY = 'CREDENTIAL_SECRETS'
 
 
@@ -85,9 +86,16 @@ def get_variables(arg=None):
     variables['HOST_PROTOCOL'] = 'https' if variables['USE_HTTPS_FOR_TESTS'] else 'http'
     variables['MODEL_TEST_ENCLAVE'] = variables['ENCLAVES'][0] if len(variables['ENCLAVES']) > 0 else 'UNKNOWN_ENCLAVE'
 
-    if get_session_cookies() and get_jenkins_credentials():
-        print('All cookies have been already loaded')
-    else:
+    cookies = os.getenv(PATH_TO_COOKIES_FILE)
+    if cookies:
+        try:
+            with open(cookies, 'r') as stream:
+                lines = stream.readlines()
+                data['cookies'] = lines[2]
+        except IOError:
+            pass
+
+    if data.get('cookies', ''):
         if 'dex' in data and data['dex']['enabled'] and 'staticPasswords' in data['dex']['config'] and \
                 data['dex']['config']['staticPasswords']:
             static_user = data['dex']['config']['staticPasswords'][0]
