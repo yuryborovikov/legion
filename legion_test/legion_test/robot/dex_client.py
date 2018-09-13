@@ -34,7 +34,7 @@ _jenkins_credentials = None
 def init_session_id_from_data(data: dict):
     cookies = data['cookies'].split(';')
     for cookie in cookies:
-        _session_cookies[cookie.split('=')[0]] = cookie.split('=')[1]
+        _session_cookies[cookie.split('=')[0].rstrip()] = cookie.split('=')[1].rstrip()
     _jenkins_credentials = (data['jenkins_user'].rstrip(), data['jenkins_password'].rstrip())
     print('Cookies:{}'.format(_session_cookies))
     print('Jenkins_creds:{}'.format(_jenkins_credentials))
