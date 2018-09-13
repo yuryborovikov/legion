@@ -95,8 +95,7 @@ def get_variables(arg=None):
                 data['jenkins_password'] = lines[1]
                 data['cookies'] = lines[2]
                 print('Loaded cookies :{},'
-                      '\nJenkins creds: {}, {}'
-                    .format(data['cookies'], data['jenkins_user'], data['jenkins_password']))
+                      '\nJenkins creds: {}, {}'.format(data['cookies'], data['jenkins_user'], data['jenkins_password']))
         except IOError:
             pass
 
