@@ -26,6 +26,7 @@ import os
 def work(path: str):
     if path == 'PATH_TO_PROFILES_DIR':
         path = os.getenv(path)
+
     profiler_loader.get_variables(path)
 
     if dex_client.get_jenkins_credentials():
