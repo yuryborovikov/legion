@@ -31,6 +31,12 @@ _session_cookies = {}
 _jenkins_credentials = None
 
 
+def init_session_id_from_data(data: dict):
+    cookie = data['cookies']
+    _session_cookies = {cookie.split('=')[0]: cookie.split('=')[1]}
+    _jenkins_credentials = (data['jenkins_user'], data['jenkins_password'])
+
+
 def init_session_id(login: str, password: str, cluster_host: str) -> None:
     """Initialize Session ID value from a Cookie after authentication.
 

@@ -20,7 +20,7 @@ Variables loader (from profiles/{env.PROFILE}.yml and /{env.CREDENTIAL_SECRETS}.
 import os
 
 import yaml
-from legion_test.robot.dex_client import init_session_id
+from legion_test.robot.dex_client import init_session_id, init_session_id_from_data
 
 PROFILE_ENVIRON_KEY = 'PROFILE'
 PATH_TO_PROFILES_DIR = 'PATH_TO_PROFILES_DIR'
@@ -91,7 +91,11 @@ def get_variables(arg=None):
         try:
             with open(cookies, 'r') as stream:
                 lines = stream.readlines()
+                data['jenkins_user'] = lines[0]
+                data['jenkins_password'] = lines[1]
                 data['cookies'] = lines[2]
+                print('Loaded cookies :{}, Jenkins creds: {}, {}'.format(
+                    data['cookies'], data['jenkins_user'], data['jenkins_password']))
         except IOError:
             pass
 
@@ -100,5 +104,7 @@ def get_variables(arg=None):
                 data['dex']['config']['staticPasswords']:
             static_user = data['dex']['config']['staticPasswords'][0]
             init_session_id(static_user['email'], static_user['password'], data.get('test_base_domain', data['base_domain']))
+    else:
+        init_session_id_from_data(data)
 
     return variables
