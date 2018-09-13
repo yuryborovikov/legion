@@ -22,8 +22,12 @@ from legion_test.robot import dex_client
 from legion_test import profiler_loader
 import os
 
+
 def work(path: str):
+    if path == 'PATH_TO_PROFILES_DIR':
+        path = os.getenv(path)
     profiler_loader.get_variables(path)
+
     if dex_client.get_jenkins_credentials():
         username, password = dex_client.get_jenkins_credentials()
         cookies = ';'.join(['{}={}'.format(k, v) for (k, v) in dex_client.get_session_cookies().items()])
