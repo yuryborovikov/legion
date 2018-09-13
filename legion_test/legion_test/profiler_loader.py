@@ -20,7 +20,7 @@ Variables loader (from profiles/{env.PROFILE}.yml and /{env.CREDENTIAL_SECRETS}.
 import os
 
 import yaml
-from legion_test.robot.dex_client import init_session_id, get_session_cookies, get_jenkins_credentials
+from legion_test.robot.dex_client import init_session_id
 
 PROFILE_ENVIRON_KEY = 'PROFILE'
 PATH_TO_PROFILES_DIR = 'PATH_TO_PROFILES_DIR'
@@ -95,7 +95,7 @@ def get_variables(arg=None):
         except IOError:
             pass
 
-    if data.get('cookies', ''):
+    if not data.get('cookies', ''):
         if 'dex' in data and data['dex']['enabled'] and 'staticPasswords' in data['dex']['config'] and \
                 data['dex']['config']['staticPasswords']:
             static_user = data['dex']['config']['staticPasswords'][0]
