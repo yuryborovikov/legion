@@ -22,8 +22,8 @@ from legion_test.robot import dex_client
 from legion_test import profiler_loader
 import os
 
-def work():
-    profiler_loader.get_variables(os.getenv('PATH_TO_PROFILES_DIR'))
+def work(path: str):
+    profiler_loader.get_variables(os.getenv(path))
     if dex_client.get_jenkins_credentials():
         username, password = dex_client.get_jenkins_credentials()
         cookies = ';'.join(['{}={}'.format(k, v) for (k, v) in dex_client.get_session_cookies().items()])
@@ -35,7 +35,9 @@ if __name__ == '__main__':
                                      description='Jenkins Dex client authorizes in Jenkins via Dex and '
                                                  'grabs Cookies and API Token from Jenkins UI, that are '
                                                  'required for testing.')
+    parser.add_argument("--path_to_profiles", nargs='?', default="PATH_TO_PROFILES_DIR",
+                        const='path_to_profiles', help='Path to the dir with profiles')
 
     args = parser.parse_args()
 
-    work()
+    work(args.path_to_profiles)
