@@ -90,21 +90,28 @@ def get_variables(arg=None):
     if cookies:
         try:
             with open(cookies, 'r') as stream:
+                print('Start reading cookies.dat file')
                 lines = stream.readlines()
-                data['jenkins_user'] = lines[0]
-                data['jenkins_password'] = lines[1]
-                data['cookies'] = lines[2]
-                print('Loaded cookies :{},'
-                      '\nJenkins creds: {}, {}'.format(data['cookies'], data['jenkins_user'], data['jenkins_password']))
+                data['jenkins_user'] = lines[0].rstrip()
+                data['jenkins_password'] = lines[1].rstrip()
+                data['cookies'] = lines[2].rstrip()
+                print('Complete reading cookies.dat file no errors')
         except IOError:
             pass
 
     if not data.get('cookies', ''):
         if 'dex' in data and data['dex']['enabled'] and 'staticPasswords' in data['dex']['config'] and \
                 data['dex']['config']['staticPasswords']:
+            print('Start init dex session cookies')
             static_user = data['dex']['config']['staticPasswords'][0]
             init_session_id(static_user['email'], static_user['password'], data.get('test_base_domain', data['base_domain']))
+            variables['STATIC_USER_EMAIL'] = static_user['email']
+            variables['STATIC_USER_PASS'] = static_user['password']
+        else:
+            variables['STATIC_USER_EMAIL'] = ''
+            variables['STATIC_USER_PASS'] = ''
     else:
+        print('Init dex session cookies from cookies.dat')
         init_session_id_from_data(data)
 
     return variables
