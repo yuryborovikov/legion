@@ -101,9 +101,9 @@ def get_variables(arg=None):
 
     if 'dex' in data and data['dex']['enabled'] and 'staticPasswords' in data['dex']['config'] and \
             data['dex']['config']['staticPasswords']:
-        print('Start init dex session cookies')
         static_user = data['dex']['config']['staticPasswords'][0]
         if not data.get('cookies', ''):
+            print('Start init new dex session cookies')
             init_session_id(static_user['email'], static_user['password'], data.get('test_base_domain', data['base_domain']))
         else:
             print('Init dex session cookies from cookies.dat')
