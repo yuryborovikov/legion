@@ -196,6 +196,7 @@ Run all test Jenkins jobs for enclave
     :FOR  ${model_name}  IN  @{JENKINS_JOBS}
     \   Log                  Start running model: ${model_name}
     \   Run Jenkins job      DYNAMIC MODEL ${model_name}   Enclave=${enclave}
+    \   Sleep   10
 
 Wait all test Jenkins jobs are finished
     :FOR  ${model_name}  IN  @{JENKINS_JOBS}
