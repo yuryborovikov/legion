@@ -94,11 +94,8 @@ def get_variables(arg=None):
                 lines = stream.readlines()
                 print('Lines are: {}'.format(lines))
                 data['jenkins_user'] = lines[0].rstrip()
-                print('jenkins_user : {}'.format(data['jenkins_user']))
                 data['jenkins_password'] = lines[1].rstrip()
-                print('jenkins_password : {}'.format(data['jenkins_password']))
                 data['cookies'] = lines[2].rstrip()
-                print('cookies : {}'.format(data['cookies']))
                 print('Complete reading cookies.dat file no errors')
         except IOError:
             pass
@@ -107,7 +104,6 @@ def get_variables(arg=None):
             data['dex']['config']['staticPasswords']:
         static_user = data['dex']['config']['staticPasswords'][0]
         if not data.get('cookies', ''):
-            print('Start init new dex session cookies')
             init_session_id(static_user['email'], static_user['password'], data.get('test_base_domain', data['base_domain']))
         else:
             print('Init dex session cookies from cookies.dat')
