@@ -40,11 +40,24 @@ ARG pip_legion_version_string=""
 
 RUN python3 -m pip install $pip_extra_index_params legion$pip_legion_version_string
 
+# Checkout nginx-jwt v.1.0.0
+RUN git clone https://github.com/auth0/nginx-jwt.git \
+    && cd nginx-jwt \
+    && git checkout v1.0.0 \
+    && ./scripts/build_deps.sh \
+    && cp lib/basexx.lua /usr/local/share/lua/5.3/basexx.lua \
+    && cp nginx-jwt.lua /usr/local/share/lua/5.3/nginx-jwt.lua \
+    && cp -r lib/resty /usr/local/share/lua/5.3/resty \
+    && cd - && rm -rf nginx-jwt
+
+WORKDIR /
+
 # Staff
-COPY start.sh /start.sh
-COPY statistics_sender.lua /usr/local/share/lua/5.3/statistics_sender.lua
-COPY static /static
-COPY nginx.conf.ltmpl /nginx.conf.ltmpl
+ADD start.sh /start.sh
+ADD statistics_sender.lua /usr/local/share/lua/5.3/statistics_sender.lua
+ADD static /static
+
+ADD nginx.conf.ltmpl /nginx.conf.ltmpl
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["/start.sh"]
