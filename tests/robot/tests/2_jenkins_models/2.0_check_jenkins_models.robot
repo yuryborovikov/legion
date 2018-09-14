@@ -6,8 +6,9 @@ Variables           ../../load_variables_from_profiles.py    ${PATH_TO_PROFILES_
 Library             legion_test.robot.Utils
 Library             legion_test.robot.Jenkins
 Suite Setup         Run Keywords
+...                 Run all test Jenkins jobs for enclave    ${MODEL_TEST_ENCLAVE}   AND
 ...                 Connect to Jenkins endpoint    AND
-...                 Run all test Jenkins jobs for enclave    ${MODEL_TEST_ENCLAVE}
+...                 Run Jenkins job    PERF TEST Vertical-Scaling   Enclave=${MODEL_TEST_ENCLAVE}
 
 *** Test Cases ***
 Running, waiting and checks jobs in Jenkins
@@ -21,6 +22,5 @@ Check Vertical Scailing
     [Tags]  jenkins model
     :FOR  ${enclave}    IN    @{ENCLAVES}
     \  Connect to Jenkins endpoint
-        Run Jenkins job    PERF TEST Vertical-Scaling   Enclave=${MODEL_TEST_ENCLAVE}
         Wait Jenkins job                  PERF TEST Vertical-Scaling   600
         Last Jenkins job is successful    PERF TEST Vertical-Scaling

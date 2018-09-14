@@ -194,6 +194,7 @@ Verify model info from edi
 Run all test Jenkins jobs for enclave
     [Arguments]             ${enclave}
     :FOR  ${model_name}  IN  @{JENKINS_JOBS}
+    \   Connect to Jenkins endpoint
     \   Log                  Start running model: ${model_name}
     \   Run Jenkins job      DYNAMIC MODEL ${model_name}   Enclave=${enclave}
     \   Sleep   10
