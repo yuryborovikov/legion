@@ -92,9 +92,13 @@ def get_variables(arg=None):
             with open(cookies, 'r') as stream:
                 print('Start reading cookies.dat file')
                 lines = stream.readlines()
+                print('Lines are: {}'.format(lines))
                 data['jenkins_user'] = lines[0].rstrip()
+                print('jenkins_user : {}'.format(data['jenkins_user']))
                 data['jenkins_password'] = lines[1].rstrip()
+                print('jenkins_password : {}'.format(data['jenkins_password']))
                 data['cookies'] = lines[2].rstrip()
+                print('cookies : {}'.format(data['cookies']))
                 print('Complete reading cookies.dat file no errors')
         except IOError:
             pass
