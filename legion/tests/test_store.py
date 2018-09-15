@@ -20,6 +20,8 @@ import unittest2
 import legion.model
 import legion.pymodel.store
 
+import dill
+
 
 class TestStore(unittest2.TestCase):
     @classmethod
@@ -31,10 +33,18 @@ class TestStore(unittest2.TestCase):
         """
         logging.basicConfig(level=logging.DEBUG)
 
+    @unittest2.skip
     def test_base_store(self):
         store = legion.pymodel.store.SharedStore()
         store.a = 415616
         self.assertEqual(store.a, 415616)
+
+    def test_copy_store(self):
+        store = legion.pymodel.store.SharedStore()
+        store.a = 415617
+        store_b = dill.copy(store)
+        self.assertEqual(repr(store_b._id), repr(store._id))
+        self.assertFalse(store_b.has_key('a'))
 
 
 if __name__ == '__main__':

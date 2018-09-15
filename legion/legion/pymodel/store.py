@@ -19,6 +19,8 @@ Model shared store (for using with callbacks)
 import logging
 import inspect
 import threading
+import os
+import uuid
 
 
 LOGGER = logging.getLogger(__name__)
@@ -33,8 +35,9 @@ class SharedStore:
         """
         Build shared store
         """
-        LOGGER.info('Creating {!r}'.format(self))
+        super().__setattr__('_id', str(uuid.uuid4()))
         super().__setattr__('_store', {})
+        LOGGER.info('Creating {!r}'.format(self))
 
     def _print_call_stack(self):
         """
@@ -49,7 +52,9 @@ class SharedStore:
         if len(entries) > 2:
             entries = entries[2:]
 
-        LOGGER.debug('Current thread: {!r}'.format(threading.current_thread()))
+        LOGGER.debug('Current thread: {!r}, PID: {}, PPID: {}'.format(threading.current_thread(),
+                                                                      os.getpid(),
+                                                                      os.getppid()))
         LOGGER.debug('Current frame\'s globals id: {}'.format(id(current_frame.f_globals)))
         LOGGER.debug('Call stack of operation:')
         for entry in entries:
@@ -99,4 +104,39 @@ class SharedStore:
 
         :return: str -- string representation of store
         """
-        return '<Shared store #{}>'.format(id(self))
+        return '<Shared store {} #{} PID #{} PPID #{}>'.format(self._id,
+                                                               id(self),
+                                                               os.getpid(),
+                                                               os.getppid())
+
+    def __getstate__(self):
+        """
+        Serializer for pickle process. It doesn't persist store state
+
+        :return: dict[str, Any] -- persisted store
+        """
+        x = self._id
+        return {
+            'id': self._id
+        }
+
+    def __setstate__(self, state):
+        """
+        De-Serializer for pickle process. It doesn't persist store state
+
+        :param state: data, gathered from serialization process
+        :type state: dict[str, Any]
+        :return: None
+        """
+        object.__setattr__(self, '_store', {})
+        object.__setattr__(self, '_id', state['id'])
+
+    def has_key(self, key):
+        """
+        Check that store has key
+
+        :param key: key
+        :type key: str
+        :return: bool -- is key in store or not
+        """
+        return key in self._store
