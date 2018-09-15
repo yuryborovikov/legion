@@ -8,7 +8,8 @@ node {
         
         stage('run script'){
             sh '''
-            chmod a+rwx /app
+            touch /app/store
+            chmod a+rwx /app/store
             '''
             legion.runScript('train.py')
         }
