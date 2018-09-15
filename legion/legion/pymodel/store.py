@@ -18,12 +18,20 @@ Model shared store (for using with callbacks)
 """
 import logging
 import inspect
-import threading
 import os
-import uuid
+import threading
+import typing
+
+try:
+    import uwsgi
+    UWSGI_LOADED = True
+except ImportError:
+    UWSGI_LOADED = False
 
 
 LOGGER = logging.getLogger(__name__)
+STORE_DATA = {}  # type: typing.Dict[str, typing.Dict[str, typing.Any]]
+UPDATE_STORAGE_SIGNAL = 15
 
 
 class SharedStore:
@@ -31,12 +39,15 @@ class SharedStore:
     Store for saving shared model-callback data
     """
 
-    def __init__(self):
+    def __init__(self, id=None, persist=True):
         """
         Build shared store
+
+        :param id: id of store. Should be uniqu across model
+        :type id: str
         """
-        super().__setattr__('_id', str(uuid.uuid4()))
-        super().__setattr__('_store', {})
+        super().__setattr__('_id', id)
+        super().__setattr__('_persist', persist)
         LOGGER.info('Creating {!r}'.format(self))
 
     def _print_call_stack(self):
@@ -52,13 +63,25 @@ class SharedStore:
         if len(entries) > 2:
             entries = entries[2:]
 
-        LOGGER.debug('Current thread: {!r}, PID: {}, PPID: {}'.format(threading.current_thread(),
-                                                                      os.getpid(),
-                                                                      os.getppid()))
+        LOGGER.info('Current thread: {!r}, PID: {}, PPID: {}'.format(threading.current_thread(),
+                                                                     os.getpid(),
+                                                                     os.getppid()))
         LOGGER.debug('Current frame\'s globals id: {}'.format(id(current_frame.f_globals)))
         LOGGER.debug('Call stack of operation:')
         for entry in entries:
             LOGGER.debug('Call stack {}:{} ({})'.format(entry.filename, entry.lineno, entry.function))
+
+    def _on_state_update(self, key):
+        """
+        Handle all key state update
+
+        :param key: key
+        :type key: str or None
+        :return: None
+        """
+        if UWSGI_LOADED:
+            LOGGER.info('Emitting signal to workers about store update')
+            uwsgi.signal(UPDATE_STORAGE_SIGNAL)
 
     def __setattr__(self, key, value):
         """
@@ -72,7 +95,12 @@ class SharedStore:
         """
         LOGGER.info('Setting key = {!r} to value (id: {}) in {!r}'.format(key, id(value), self))
         self._print_call_stack()
-        self._store[key] = value
+        # Build store if it is not present
+        if self._id not in STORE_DATA:
+            STORE_DATA[self._id] = {}
+        # Save value
+        STORE_DATA[self._id][key] = value
+        self._on_state_update(key)
 
     def __getattr__(self, item):
         """
@@ -84,7 +112,12 @@ class SharedStore:
         """
         LOGGER.info('Retrieving key = {!r} with from {!r}'.format(item, self))
         self._print_call_stack()
-        value = self._store[item]
+
+        if self._id not in STORE_DATA:
+            LOGGER.warning('Storage {!r} has not been initialized. Initializing'.format(self._id))
+            STORE_DATA[self._id] = {}
+
+        value = STORE_DATA[self._id][item]
         LOGGER.info('Id of key {!r} value is {}'.format(item, id(value)))
         return value
 
@@ -111,25 +144,28 @@ class SharedStore:
 
     def __getstate__(self):
         """
-        Serializer for pickle process. It doesn't persist store state
+        Serialize state for pickle process. It doesn't persist store state
 
         :return: dict[str, Any] -- persisted store
         """
-        x = self._id
+        LOGGER.debug('Serializing store {!r}'.format(self))
+        self._print_call_stack()
+
         return {
             'id': self._id
         }
 
     def __setstate__(self, state):
         """
-        De-Serializer for pickle process. It doesn't persist store state
+        De-Serialize state for pickle process. It doesn't persist store state
 
         :param state: data, gathered from serialization process
         :type state: dict[str, Any]
         :return: None
         """
-        object.__setattr__(self, '_store', {})
         object.__setattr__(self, '_id', state['id'])
+        LOGGER.debug('De-serializing store {!r}'.format(self))
+        self._print_call_stack()
 
     def has_key(self, key):
         """
@@ -139,4 +175,20 @@ class SharedStore:
         :type key: str
         :return: bool -- is key in store or not
         """
-        return key in self._store
+        return self._id in STORE_DATA and key in STORE_DATA[self._id]
+
+    @staticmethod
+    def update_all_storages():
+        """
+        React on signal about storages syncronisation
+
+        :return: None
+        """
+        LOGGER.info('Process {} have to syncronize store'.format(os.getpid()))
+
+
+if UWSGI_LOADED:
+    """
+    Register uWSGI signal for property storage update
+    """
+    uwsgi.register_signal(UPDATE_STORAGE_SIGNAL, "workers", SharedStore.update_all_storages)

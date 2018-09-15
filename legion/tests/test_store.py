@@ -44,7 +44,6 @@ class TestStore(unittest2.TestCase):
         store.a = 415617
         store_b = dill.copy(store)
         self.assertEqual(repr(store_b._id), repr(store._id))
-        self.assertFalse(store_b.has_key('a'))
 
 
 if __name__ == '__main__':
