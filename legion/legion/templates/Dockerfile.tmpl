@@ -40,11 +40,6 @@ WORKDIR /app
 
 RUN {{CREATE_SYMLINK_COMMAND|safe}}
 
-ARG pip_extra_index_params=""
-ARG pip_legion_version_string=""
-
-RUN pip3 install --disable-pip-version-check $pip_extra_index_params legion$pip_legion_version_string
-
 ENV MODEL_FILE="{{MODEL_FILE}}" \
     MODEL_ID="{{MODEL_ID}}" \
     VERBOSE="true"
