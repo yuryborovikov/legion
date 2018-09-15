@@ -187,9 +187,13 @@ class SharedStore:
 
 
 def update_signal_handler(sig):
-    print('I\'m going to update due to {!r} signal. Mine PID is {}'.format(sig, os.getpid()))
+    print('I\'m going to update due to {!r} signal. Mine PID = {}'.format(sig, os.getpid()))
 
 
 if IN_UWSGI_CONTEXT:
     uwsgi.register_signal(22, "workers", update_signal_handler)
     uwsgi.add_file_monitor(22, STORE_DUMP_LOCATION)
+
+STORAGE = SharedStore('abc-store')
+STORAGE.data = None
+
