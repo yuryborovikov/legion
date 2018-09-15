@@ -10,6 +10,10 @@ legion.model.define_property('a', 1.0)
 legion.model.define_property('b', 0.1)
 
 
+def process_data(val):
+    return val
+
+
 # Callback function
 def on_new_properties():
     print('Entering callback function')
@@ -29,13 +33,13 @@ legion.model.on_property_update(on_new_properties)
 
 
 def ep_a(x):
-    x = store.STORAGE.data
-    return {'e': 'a', 'data': x}
+    v = process_data(store.STORAGE.data)
+    return {'e': 'a', 'data': v}
 
 
 def ep_b(x):
-    x = store.STORAGE.data
-    return {'e': 'b', 'data': x}
+    v = process_data(store.STORAGE.data)
+    return {'e': 'b', 'data': v}
 
 
 legion.model.export_untyped(ep_a, endpoint='ep_a')

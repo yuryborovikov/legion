@@ -19,6 +19,7 @@ Model shared store (for using with callbacks)
 import logging
 import inspect
 import os
+import sys
 import threading
 import typing
 
@@ -187,7 +188,13 @@ class SharedStore:
 
 
 def update_signal_handler(sig):
-    print('I\'m going to update due to {!r} signal. Mine PID = {}'.format(sig, os.getpid()))
+    print('I\'m going to update due to {!r} signal. Mine PID = {}'.format(sig, os.getpid()), file=sys.__stderr__)
+    with open(STORE_DUMP_LOCATION, 'rb') as file:
+        global STORE_DATA
+        STORE_DATA = dill.load(file)
+        print('New data is {!r}'.format(STORE_DATA), file=sys.__stderr__)
+
+    print('Data has been update for PID {}'.format(os.getpid()), file=sys.__stderr__)
 
 
 if IN_UWSGI_CONTEXT:
