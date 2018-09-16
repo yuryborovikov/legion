@@ -19,11 +19,12 @@ def on_new_properties():
     print('Entering callback function')
     print('Recalculating....')
     time.sleep(10)
-    print('Writing data')
-    store.STORAGE.data = {
+    data_object = {
         'a': legion.model.properties.get('a', cast=legion.model.float32),
         'b': legion.model.properties.get('b', cast=legion.model.float32)
     }
+    print('Writing data')
+    store.STORAGE.data = data_object
     print('Data has been updated')
     print('Exiting callback function')
 
