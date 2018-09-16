@@ -20,9 +20,9 @@ import logging
 import inspect
 import os
 import sys
+import struct
 import time
 import threading
-import multiprocessing
 import typing
 
 import dill
@@ -30,7 +30,6 @@ import dill
 LOGGER = logging.getLogger(__name__)
 STORE_DATA = {}  # type: typing.Dict[str, typing.Dict[str, typing.Any]]
 STORE_DUMP_LOCATION = '/app/store'
-LATEST_DATA_STATE = multiprocessing.Value('i', 0)
 
 try:
     import uwsgi
@@ -39,6 +38,17 @@ try:
 except ImportError:
     IN_UWSGI_CONTEXT = False
     LOGGER.info('System now not in UWSGI context')
+
+
+def write_date_time():
+    current_time = int(time.time())
+    b = struct.pack(">i", current_time)
+    uwsgi.sharedarea_write32(0, b)
+
+
+def get_date_time():
+    time_val = uwsgi.sharedarea_read32(0)
+    print('Date time value: {!r}'.format(time_val))
 
 
 class SharedStore:
@@ -93,7 +103,10 @@ class SharedStore:
             LOGGER.error('Cannot dump state to {}:{}'.format(STORE_DUMP_LOCATION, dumping_exception))
         # Increment global store
         LOGGER.info('Incrementing global store to new time')
-        LATEST_DATA_STATE.value = time.time()
+        try:
+            write_date_time()
+        except Exception as write_date_exc:
+            LOGGER.error('Cannot write date: {}'.format(write_date_exc))
 
     def __setattr__(self, key, value):
         """
@@ -194,8 +207,8 @@ class SharedStore:
 
 
 def update_signal_handler(sig):
-    value = LATEST_DATA_STATE.value
-    print('I\'m going to update due to {!r} signal. Mine PID = {}. VALUE = {}'.format(sig, os.getpid(), value), file=sys.__stderr__)
+    print('I\'m going to update due to {!r} signal. Mine PID = {}'.format(sig, os.getpid()), file=sys.__stderr__)
+    get_date_time()
     return
     with open(STORE_DUMP_LOCATION, 'rb') as file:
         global STORE_DATA
