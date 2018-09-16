@@ -43,11 +43,11 @@ except ImportError:
 def write_date_time():
     current_time = int(time.time())
     b = struct.pack(">i", current_time)
-    uwsgi.sharedarea_write32(0, b)
+    uwsgi.sharedarea_write32(0, 0, b)
 
 
 def get_date_time():
-    time_val = uwsgi.sharedarea_read32(0)
+    time_val = uwsgi.sharedarea_read32(0, 0)
     print('Date time value: {!r}'.format(time_val))
 
 
