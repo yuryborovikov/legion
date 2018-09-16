@@ -20,7 +20,9 @@ import logging
 import inspect
 import os
 import sys
+import time
 import threading
+import multiprocessing
 import typing
 
 import dill
@@ -28,6 +30,7 @@ import dill
 LOGGER = logging.getLogger(__name__)
 STORE_DATA = {}  # type: typing.Dict[str, typing.Dict[str, typing.Any]]
 STORE_DUMP_LOCATION = '/app/store'
+LATEST_DATA_STATE = multiprocessing.Value('i', 0)
 
 try:
     import uwsgi
@@ -88,6 +91,9 @@ class SharedStore:
                 dill.dump(STORE_DATA, file)
         except Exception as dumping_exception:
             LOGGER.error('Cannot dump state to {}:{}'.format(STORE_DUMP_LOCATION, dumping_exception))
+        # Increment global store
+        LOGGER.info('Incrementing global store to new time')
+        LATEST_DATA_STATE.value = time.time()
 
     def __setattr__(self, key, value):
         """
@@ -188,7 +194,8 @@ class SharedStore:
 
 
 def update_signal_handler(sig):
-    print('I\'m going to update due to {!r} signal. Mine PID = {}'.format(sig, os.getpid()), file=sys.__stderr__)
+    value = LATEST_DATA_STATE.value
+    print('I\'m going to update due to {!r} signal. Mine PID = {}. VALUE = {}'.format(sig, os.getpid(), value), file=sys.__stderr__)
     return
     with open(STORE_DUMP_LOCATION, 'rb') as file:
         global STORE_DATA
@@ -202,8 +209,8 @@ try:
     uwsgi.register_signal(22, "workers", update_signal_handler)
     uwsgi.add_timer(22, 2)  # never ending timer 2s
     print('Signal and monitor has been registered on PID {}'.format(os.getpid()))
-except NameError:
-    pass
+except NameError as name_error:
+    print('Cannot register timer: {}'.format(name_error))
 
 STORAGE = SharedStore('abc-store')
 STORAGE.data = None
