@@ -197,9 +197,12 @@ def update_signal_handler(sig):
     print('Data has been update for PID {}'.format(os.getpid()), file=sys.__stderr__)
 
 
-if IN_UWSGI_CONTEXT:
+try:
     uwsgi.register_signal(22, "workers", update_signal_handler)
     uwsgi.add_file_monitor(22, STORE_DUMP_LOCATION)
+    print('Signal and monitor has been registered on PID {}'.format(os.getpid()))
+except NameError:
+    pass
 
 STORAGE = SharedStore('abc-store')
 STORAGE.data = None
