@@ -204,6 +204,7 @@ class SharedStore:
 
 
 def update_signal_handler(sig):
+    global LAST_SYNC_DATE_TIME
     print('I got a sig. PID = {}'.format(os.getpid()), file=sys.__stderr__)
 
     try:
@@ -213,7 +214,6 @@ def update_signal_handler(sig):
         if time_val and time_val != LAST_SYNC_DATE_TIME:
             LOGGER.info('Updating due to getting new time marker = {!r} (old is {!r})'
                         .format(time_val, LAST_SYNC_DATE_TIME))
-            global LAST_SYNC_DATE_TIME
             LAST_SYNC_DATE_TIME = time_val
 
             LOGGER.debug('Trying to open exchange file')
