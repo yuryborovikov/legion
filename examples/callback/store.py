@@ -30,6 +30,12 @@ import dill
 LOGGER = logging.getLogger(__name__)
 STORE_DATA = {}  # type: typing.Dict[str, typing.Dict[str, typing.Any]]
 STORE_DUMP_LOCATION = '/app/store'
+LAST_SYNC_DATE_TIME = None
+UPDATE_DATA_SIGNAL = 22
+
+TIME_MARKER_PAGE_ID = 0
+TIME_MARKER_OFFSET = 0
+TIME_MARKER_SYNC_TIME = 2  # in seconds
 
 try:
     import uwsgi
@@ -38,16 +44,6 @@ try:
 except ImportError:
     IN_UWSGI_CONTEXT = False
     LOGGER.info('System now not in UWSGI context')
-
-
-def write_date_time():
-    current_time = int(time.time())
-    uwsgi.sharedarea_write32(0, 0, current_time)
-
-
-def get_date_time():
-    time_val = uwsgi.sharedarea_read32(0, 0)
-    print('Date time value: {!r}'.format(time_val))
 
 
 class SharedStore:
@@ -98,14 +94,16 @@ class SharedStore:
             with open(STORE_DUMP_LOCATION, 'wb') as file:
                 LOGGER.info('Dumping data to {}'.format(STORE_DUMP_LOCATION))
                 dill.dump(STORE_DATA, file)
+
+            try:
+                global LAST_SYNC_DATE_TIME
+                LAST_SYNC_DATE_TIME = int(time.time())
+                LOGGER.info('Setting global store to new time: {!r}'.format(LAST_SYNC_DATE_TIME))
+                uwsgi.sharedarea_write32(TIME_MARKER_PAGE_ID, TIME_MARKER_OFFSET, LAST_SYNC_DATE_TIME)
+            except Exception as write_date_exc:
+                LOGGER.error('Cannot update shared store time: {}'.format(write_date_exc))
         except Exception as dumping_exception:
             LOGGER.error('Cannot dump state to {}:{}'.format(STORE_DUMP_LOCATION, dumping_exception))
-        # Increment global store
-        LOGGER.info('Incrementing global store to new time')
-        try:
-            write_date_time()
-        except Exception as write_date_exc:
-            LOGGER.error('Cannot write date: {}'.format(write_date_exc))
 
     def __setattr__(self, key, value):
         """
@@ -206,23 +204,38 @@ class SharedStore:
 
 
 def update_signal_handler(sig):
-    print('I\'m going to update due to {!r} signal. Mine PID = {}'.format(sig, os.getpid()), file=sys.__stderr__)
-    get_date_time()
-    return
-    with open(STORE_DUMP_LOCATION, 'rb') as file:
-        global STORE_DATA
-        STORE_DATA = dill.load(file)
-        print('New data is {!r}'.format(STORE_DATA), file=sys.__stderr__)
+    print('I got a sig. PID = {}'.format(os.getpid()), file=sys.__stderr__)
 
-    print('Data has been update for PID {}'.format(os.getpid()), file=sys.__stderr__)
+    try:
+        time_val = uwsgi.sharedarea_read32(TIME_MARKER_PAGE_ID, TIME_MARKER_OFFSET)
+        LOGGER.debug('Process have got new time marker: {!r}. Old: {!r}. Source signal: {!r}'
+                     .format(time_val, LAST_SYNC_DATE_TIME, sig))
+        if time_val and time_val != LAST_SYNC_DATE_TIME:
+            LOGGER.info('Updating due to getting new time marker = {!r} (old is {!r})'
+                        .format(time_val, LAST_SYNC_DATE_TIME))
+            global LAST_SYNC_DATE_TIME
+            LAST_SYNC_DATE_TIME = time_val
+
+            LOGGER.debug('Trying to open exchange file')
+
+            with open(STORE_DUMP_LOCATION, 'rb') as file:
+                global STORE_DATA
+                STORE_DATA = dill.load(file)
+                print('New data is {!r}'.format(STORE_DATA), file=sys.__stderr__)
+
+            LOGGER.info('Data has been updated')
+    except Exception as sync_exception:
+        LOGGER.exception('Cannot sync data: {}'.format(sync_exception), exc_info=sync_exception)
 
 
-try:
-    uwsgi.register_signal(22, "workers", update_signal_handler)
-    uwsgi.add_timer(22, 2)  # never ending timer 2s
-    print('Signal and monitor has been registered on PID {}'.format(os.getpid()))
-except NameError as name_error:
-    print('Cannot register timer: {}'.format(name_error))
+if IN_UWSGI_CONTEXT:
+    uwsgi.register_signal(UPDATE_DATA_SIGNAL, 'workers', update_signal_handler)
+    uwsgi.add_timer(UPDATE_DATA_SIGNAL, TIME_MARKER_SYNC_TIME)
+    LOGGER.info('Signal handler and timer have been registered on PID {}'.format(os.getpid()))
+else:
+    LOGGER.debug('Registration of signal handler and creation of time have been skipped')
+
+# Here is example data store
 
 STORAGE = SharedStore('abc-store')
 STORAGE.data = None
