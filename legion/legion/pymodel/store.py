@@ -19,22 +19,32 @@ Model shared store (for using with callbacks)
 import logging
 import inspect
 import os
+import sys
+import time
 import threading
 import typing
 
 import dill
 
 LOGGER = logging.getLogger(__name__)
+
 STORE_DATA = {}  # type: typing.Dict[str, typing.Dict[str, typing.Any]]
+LAST_SYNC_DATE_TIME = None
+
 STORE_DUMP_LOCATION = '/app/store'
+UPDATE_DATA_SIGNAL = 22
+
+TIME_MARKER_PAGE_ID = 0
+TIME_MARKER_OFFSET = 0
+TIME_MARKER_SYNC_TIME = 2  # in seconds
 
 try:
     import uwsgi
     IN_UWSGI_CONTEXT = True
-    LOGGER.info('System now in UWSGI context')
+    LOGGER.info('System now in uWSGI context')
 except ImportError:
     IN_UWSGI_CONTEXT = False
-    LOGGER.info('System now not in UWSGI context')
+    LOGGER.info('System now not in uWSGI context')
 
 
 class SharedStore:
@@ -42,14 +52,14 @@ class SharedStore:
     Store for saving shared model-callback data
     """
 
-    def __init__(self, id=None):
+    def __init__(self, store_id=None):
         """
         Build shared store
 
-        :param id: id of store. Should be uniqu across model
-        :type id: str
+        :param store_id: id of store. Should be uniqu across model
+        :type store_id: str
         """
-        super().__setattr__('_id', id)
+        super().__setattr__('_id', store_id)
         LOGGER.info('Creating {!r}'.format(self))
 
     def _print_call_stack(self):
@@ -82,9 +92,19 @@ class SharedStore:
         :return: None
         """
         try:
+            # Dumping data
+            LOGGER.info('Dumping data to {}'.format(STORE_DUMP_LOCATION))
             with open(STORE_DUMP_LOCATION, 'wb') as file:
-                LOGGER.info('Dumping data to {}'.format(STORE_DUMP_LOCATION))
                 dill.dump(STORE_DATA, file)
+
+            # Syncing time marker
+            try:
+                global LAST_SYNC_DATE_TIME
+                LAST_SYNC_DATE_TIME = int(time.time())
+                LOGGER.info('Setting global store to new time: {!r}'.format(LAST_SYNC_DATE_TIME))
+                uwsgi.sharedarea_write32(TIME_MARKER_PAGE_ID, TIME_MARKER_OFFSET, LAST_SYNC_DATE_TIME)
+            except Exception as write_date_exc:
+                LOGGER.error('Cannot update shared store time: {}'.format(write_date_exc))
         except Exception as dumping_exception:
             LOGGER.error('Cannot dump state to {}:{}'.format(STORE_DUMP_LOCATION, dumping_exception))
 
@@ -107,7 +127,7 @@ class SharedStore:
         STORE_DATA[self._id][key] = value
 
         LOGGER.info('Checking value before notification')
-        if value is not None:
+        if value is not None and IN_UWSGI_CONTEXT:
             self._on_state_update(key)
 
     def __getattr__(self, item):
@@ -184,3 +204,42 @@ class SharedStore:
         :return: bool -- is key in store or not
         """
         return self._id in STORE_DATA and key in STORE_DATA[self._id]
+
+
+def update_signal_handler(sig):
+    """
+    Handle timer signal: check shared variable and import data if shared variable greater then local
+
+    :param sig: id of signal
+    :type sig: int
+    :return: None
+    """
+    global LAST_SYNC_DATE_TIME
+
+    try:
+        time_val = uwsgi.sharedarea_read32(TIME_MARKER_PAGE_ID, TIME_MARKER_OFFSET)
+        LOGGER.debug('Process have got new time marker: {!r}. Old: {!r}. Source signal: {!r}'
+                     .format(time_val, LAST_SYNC_DATE_TIME, sig))
+        if time_val and time_val != LAST_SYNC_DATE_TIME:
+            LOGGER.info('Updating due to getting new time marker = {!r} (old is {!r})'
+                        .format(time_val, LAST_SYNC_DATE_TIME))
+            LAST_SYNC_DATE_TIME = time_val
+
+            LOGGER.debug('Trying to open exchange file')
+
+            with open(STORE_DUMP_LOCATION, 'rb') as file:
+                global STORE_DATA
+                STORE_DATA = dill.load(file)
+                LOGGER.debug('New data is {!r}'.format(STORE_DATA), file=sys.__stderr__)
+
+            LOGGER.info('Data has been updated')
+    except Exception as sync_exception:
+        LOGGER.exception('Cannot sync data: {}'.format(sync_exception), exc_info=sync_exception)
+
+
+if IN_UWSGI_CONTEXT:
+    uwsgi.register_signal(UPDATE_DATA_SIGNAL, 'workers', update_signal_handler)
+    uwsgi.add_timer(UPDATE_DATA_SIGNAL, TIME_MARKER_SYNC_TIME)
+    LOGGER.info('Signal handler and timer have been registered on PID {}'.format(os.getpid()))
+else:
+    LOGGER.debug('Registration of signal handler and creation of time have been skipped')
