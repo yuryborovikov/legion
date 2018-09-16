@@ -189,6 +189,7 @@ class SharedStore:
 
 def update_signal_handler(sig):
     print('I\'m going to update due to {!r} signal. Mine PID = {}'.format(sig, os.getpid()), file=sys.__stderr__)
+    return
     with open(STORE_DUMP_LOCATION, 'rb') as file:
         global STORE_DATA
         STORE_DATA = dill.load(file)
@@ -199,7 +200,7 @@ def update_signal_handler(sig):
 
 try:
     uwsgi.register_signal(22, "workers", update_signal_handler)
-    uwsgi.add_file_monitor(22, STORE_DUMP_LOCATION)
+    uwsgi.add_timer(22, 2)  # never ending timer 2s
     print('Signal and monitor has been registered on PID {}'.format(os.getpid()))
 except NameError:
     pass
