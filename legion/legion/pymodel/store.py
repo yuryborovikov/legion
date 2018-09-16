@@ -29,7 +29,7 @@ import dill
 LOGGER = logging.getLogger(__name__)
 
 STORE_DATA = {}  # type: typing.Dict[str, typing.Dict[str, typing.Any]]
-LAST_SYNC_DATE_TIME = None
+LAST_SYNC_DATE_TIME = 0
 
 STORE_DUMP_LOCATION = '/app/store'
 UPDATE_DATA_SIGNAL = 22
@@ -218,11 +218,9 @@ def update_signal_handler(sig):
 
     try:
         time_val = uwsgi.sharedarea_read32(TIME_MARKER_PAGE_ID, TIME_MARKER_OFFSET)
-        LOGGER.debug('Process have got new time marker: {!r}. Old: {!r}. Source signal: {!r}'
-                     .format(time_val, LAST_SYNC_DATE_TIME, sig))
         if time_val and time_val != LAST_SYNC_DATE_TIME:
-            LOGGER.info('Updating due to getting new time marker = {!r} (old is {!r})'
-                        .format(time_val, LAST_SYNC_DATE_TIME))
+            LOGGER.info('Updating due to getting new time marker = {!r} (old is {!r}). PID: {}'
+                        .format(time_val, LAST_SYNC_DATE_TIME, os.getpid()))
             LAST_SYNC_DATE_TIME = time_val
 
             LOGGER.debug('Trying to open exchange file')
@@ -230,7 +228,7 @@ def update_signal_handler(sig):
             with open(STORE_DUMP_LOCATION, 'rb') as file:
                 global STORE_DATA
                 STORE_DATA = dill.load(file)
-                LOGGER.debug('New data is {!r}'.format(STORE_DATA), file=sys.__stderr__)
+                LOGGER.debug('New data is {!r}'.format(STORE_DATA))
 
             LOGGER.info('Data has been updated')
     except Exception as sync_exception:
