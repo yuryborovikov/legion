@@ -284,18 +284,23 @@ class ModelService(Service):
         extension_api = kubernetes.client.ExtensionsV1beta1Api(client)
 
         all_deployments = extension_api.list_namespaced_deployment(self._k8s_service.metadata.namespace)
-        model_deployments = [deployment for deployment in all_deployments.items
-                             if deployment.metadata.labels.get(DOMAIN_MODEL_ID) == self.id
-                             and deployment.metadata.labels.get(DOMAIN_MODEL_VERSION) == self.version]
-
-        if model_deployments:
-            return model_deployments[0]
-        else:
-            return None
+        return next((deployment for deployment in all_deployments.items
+                     if deployment.metadata.labels.get(DOMAIN_MODEL_ID) == self.id
+                     and deployment.metadata.labels.get(DOMAIN_MODEL_VERSION) == self.version), None)
 
     def _load_deployment_data(self):
         """
-        Load deployment data (lazy loading)
+        Logic (is called with retries) to load model service deployment
+
+        :return: bool
+        """
+        if self._deployment_data_loaded:
+            return
+
+        self._deployment = ensure_function_succeed(self._load_deployment_data_logic,
+                                                   LOAD_DATA_ITERATIONS, LOAD_DATA_TIMEOUT)
+        if not self._deployment:
+            raise Exception('Failed to load deployment for {!r}'.format(self))
 
         :return: None
         """
