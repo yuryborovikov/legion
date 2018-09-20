@@ -20,13 +20,15 @@ import logging
 import unittest2
 
 # Extend PYTHONPATH in order to import test tools and models
-sys.path.extend(os.path.dirname(__file__))
+# sys.path.extend(os.path.dirname(__file__))
 
 from legion_test_utils import ModelLocalContainerExecutionContext, build_distribution, \
     ModelDockerBuilderContainerContext
 
 
 class TestDeploy(unittest2.TestCase):
+    _multiprocess_shared_ = True
+
     @classmethod
     def setUpClass(cls):
         """

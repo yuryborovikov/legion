@@ -7,3 +7,4 @@ tox==2.8.2
 locustio==0.8.1
 coverage==4.4.1
 docker-registry-client==0.5.2
+nose-pathmunge==0.1.2

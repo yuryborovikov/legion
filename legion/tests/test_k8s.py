@@ -29,10 +29,7 @@ import legion.containers.docker
 import legion.containers.headers
 import legion.utils
 
-try:
-    from .legion_test_utils import LegionTestContainer
-except ImportError:
-    from legion_test_utils import LegionTestContainer
+from legion_test_utils import LegionTestContainer
 
 LOGGER = logging.getLogger(__name__)
 

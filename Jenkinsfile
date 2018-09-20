@@ -315,7 +315,7 @@ node {
                 }, 'Run Python tests': {
                     sh """
                     cd legion
-                    VERBOSE=true BASE_IMAGE_VERSION="${Globals.buildVersion}" ../.venv/bin/nosetests --with-coverage --cover-package legion --with-xunit --cover-html  --logging-level DEBUG -v || true
+                    VERBOSE=true BASE_IMAGE_VERSION="${Globals.buildVersion}" ../.venv/bin/nosetests --with-path . --processes=10 --process-timeout=600 --with-coverage --cover-package legion --with-xunit --cover-html  --logging-level DEBUG -v || true
                     """
                     junit 'legion/nosetests.xml'
     
