@@ -473,6 +473,7 @@ EOL
 	}
     post { 
         always { 
+            notifyBuild(currentBuild.result)
             deleteDir()
         }
     }
