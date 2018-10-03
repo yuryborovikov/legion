@@ -81,8 +81,9 @@ smtp:
   smtp_host: localhost
   smtp_starttls: true
   smtp_ssl: false
+  smtp_tls: true
   smtp_user: airflow
-  smtp_port: 25
+  smtp_port: 587
   smtp_password: airflow
   smtp_mail_from: airflow@airflow.local
 

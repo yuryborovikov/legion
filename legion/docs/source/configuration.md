@@ -158,6 +158,7 @@ airflow:
   email:
     smtp_host: smtp.post.domain
     smtp_starttls: true
+    smtp_tls: true
     smtp_ssl: true
     smtp_user: user
     smtp_port: 465

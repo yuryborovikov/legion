@@ -144,6 +144,7 @@ email_backend = {{ .Values.webserver.email_backend }}
 # server here
 smtp_host = {{ .Values.smtp.smtp_host }}
 smtp_starttls = {{ .Values.smtp.smtp_starttls }}
+smtp_tls = {{ .Values.smtp.smtp_tls }}
 smtp_ssl = {{ .Values.smtp.smtp_ssl }}
 smtp_user = {{ .Values.smtp.smtp_user }}
 smtp_port = {{ .Values.smtp.smtp_port }}
