@@ -53,7 +53,8 @@ node {
             dockerCacheArg = (params.EnableDockerCache) ? '' : '--no-cache'
 
             Globals.dockerLabels = "--label git_revision=${Globals.rootCommit} --label build_id=${env.BUILD_NUMBER} --label build_user=${env.BUILD_USER} --label build_date=${buildDate}"
-            println(Globals.dockerLabels)
+            /// fail here
+            println(UNSET_VAR)
 
             if (params.StableRelease) {
                 stage('Set GIT release Tag'){
