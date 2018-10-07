@@ -21,6 +21,7 @@ import kubernetes.client
 import kubernetes.config
 import kubernetes.config.config_exception
 import urllib3
+from kubernetes.client.rest import ApiException
 
 import legion.k8s.utils
 import legion.k8s.properties
@@ -231,3 +232,41 @@ class K8s:
         property.load()
         property[key] = value
         property.save()
+
+    def create_enclave(self, enclave_name):
+        """
+        Generate which returns events for enclaves
+
+        :return: A tuple (event type [ADDED, DELETED, MODIFIED], service object)
+        :rtype: (str, Enclave)
+        """
+        client = self.build_client()
+        core_api = kubernetes.client.CoreV1Api(client)
+
+        body = kubernetes.client.V1Namespace(metadata={'name': enclave_name})  # V1Namespace |
+        pretty = 'pretty_example'  # str | If 'true', then the output is pretty printed. (optional)
+
+        try:
+            api_response = core_api.create_namespace(body, pretty=pretty)
+            print(api_response)
+        except ApiException as e:
+            print("Exception when calling CoreV1Api->create_namespace: %s\n" % e)
+
+    def delete_enclave(self, enclave_name):
+        """
+        Generate which returns events for enclaves
+
+        :return: A tuple (event type [ADDED, DELETED, MODIFIED], service object)
+        :rtype: (str, Enclave)
+        """
+        client = self.build_client()
+        core_api = kubernetes.client.CoreV1Api(client)
+
+        body = kubernetes.client.V1DeleteOptions()
+        pretty = 'pretty_example'
+
+        try:
+            api_response = core_api.delete_namespace(enclave_name, body, pretty=pretty)
+            print(api_response)
+        except ApiException as e:
+            print("Exception when calling CoreV1Api->create_namespace: %s\n" % e)
