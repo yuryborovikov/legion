@@ -464,7 +464,6 @@ EOL
     post { 
         always { 
             notifyBuild(currentBuild.result)
-            print("THISISPOST")
             deleteDir()
         }
     }
