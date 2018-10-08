@@ -5,7 +5,7 @@ airflow_home = /home/airflow
 
 # The folder where your airflow pipelines live, most likely a
 # subfolder in a code repository
-dags_folder = /var/tmp
+dags_folder = /airflow_dags_new
 
 logging_level = {{ .Values.core.logging_level }}
 log_format = {{ .Values.core.logging_format }}

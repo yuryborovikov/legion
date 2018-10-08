@@ -52,6 +52,9 @@ RUN rm -rf \
 ARG pip_extra_index_params=""
 ARG pip_legion_version_string=""
 
+RUN mkdir /airflow_dags_new
+COPY s3-connection-test.py /airflow_dags_new/s3-connection-test.py
+COPY example_python_work.py /airflow_dags_new/example_python_work.py
 COPY entrypoint.sh /home/airflow/init.sh
 
 COPY requirements.txt /home/airflow/requirements.txt
