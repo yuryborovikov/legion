@@ -35,6 +35,8 @@ airflow_rds_shape: "db.t2.medium"
 airflow_rds_size: "50"
 
 # Kops
+kops_version: 1.10.0
+kops_sha256sum: aaa34a80e7e24104fd90f9c2571b37fa7c0b3284
 cluster_name: legion-dev.epm.kharlamov.biz
 state_store: s3://legion-cluster
 aws_image: kope.io/k8s-1.9-debian-stretch-amd64-hvm-ebs-2018-05-27
