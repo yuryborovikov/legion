@@ -104,7 +104,7 @@ def createjenkinsJobs(String commitID) {
             aws s3 cp $CLUSTER_STATE_STORE/vault/$Profile ./${CLUSTER_NAME}_${Profile}
             ansible-vault decrypt --vault-password-file=${vault} --output ${CREDENTIAL_SECRETS} ./${CLUSTER_NAME}_${Profile}
 
-            kops export kubecfg --name $CLUSTER_NAME --state $CLUSTER_STATE_STORE
+            kops-1.10.0 export kubecfg --name $CLUSTER_NAME --state $CLUSTER_STATE_STORE
             
             export PATH=./:$PATH DISPLAY=:99
             export PROFILE=${Profile}
@@ -181,7 +181,7 @@ def runRobotTests(tags="") {
             aws s3 cp $CLUSTER_STATE_STORE/vault/$Profile ./${CLUSTER_NAME}_${Profile}
             ansible-vault decrypt --vault-password-file=${vault} --output ${CREDENTIAL_SECRETS} ./${CLUSTER_NAME}_${Profile}
 
-            kops export kubecfg --name $CLUSTER_NAME --state $CLUSTER_STATE_STORE
+            kops-1.10.0 export kubecfg --name $CLUSTER_NAME --state $CLUSTER_STATE_STORE
             PATH=../../.venv/bin:$PATH DISPLAY=:99 \
             PROFILE=$Profile LEGION_VERSION=$LegionVersion \
             ../../.venv/bin/python3 -m robot.run --listener legion_test.process_reporter --variable PATH_TO_PROFILES_DIR:$PATH_TO_PROFILES_DIR $robot_tags *.robot || true
@@ -189,7 +189,7 @@ def runRobotTests(tags="") {
             echo "Starting python tests"
             cd ../python
 
-            kops export kubecfg --name $CLUSTER_NAME --state $CLUSTER_STATE_STORE
+            kops-1.10.0 export kubecfg --name $CLUSTER_NAME --state $CLUSTER_STATE_STORE
 
             export CREDENTIAL_SECRETS=./${CLUSTER_NAME}_${Profile}.yaml
 

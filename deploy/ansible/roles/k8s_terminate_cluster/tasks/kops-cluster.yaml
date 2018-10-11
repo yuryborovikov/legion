@@ -4,14 +4,14 @@
 #####################
 
 - name: Get cluster status
-  shell: "kops get cluster {{ cluster_name }} --state {{ state_store }} 2>&1"
+  shell: "{{ kops_path }} get cluster {{ cluster_name }} --state {{ state_store }} 2>&1"
   register: cluster_status
   ignore_errors: true
 
 - name: Configure kubectl using kops
-  shell: "kops export kubecfg --name {{ cluster_name }} --state {{ state_store }}"
+  shell: "{{ kops_path }} export kubecfg --name {{ cluster_name }} --state {{ state_store }}"
   when: cluster_status.stdout.find('cluster not found') == -1
 
 - name: Delete the cluster
-  shell: "kops delete cluster {{ cluster_name }} --state {{ state_store }} --yes"
+  shell: "{{ kops_path }} delete cluster {{ cluster_name }} --state {{ state_store }} --yes"
   when: cluster_status.stdout.find('cluster not found') == -1

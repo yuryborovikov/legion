@@ -34,7 +34,7 @@
 
   tasks:
   - name: Configure kubectl using kops
-    shell: "kops export kubecfg --name {{ cluster_name }} --state {{ state_store }}"
+    shell: "{{ kops_path }} export kubecfg --name {{ cluster_name }} --state {{ state_store }}"
   
   - name: Remove legion chart
     shell: helm --kube-context {{ cluster_name }} delete --purge legion-{{ enclave_name }}

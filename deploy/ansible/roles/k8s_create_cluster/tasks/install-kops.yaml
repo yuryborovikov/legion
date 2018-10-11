@@ -7,7 +7,7 @@
 - name: Download Kops binaries
   get_url:
     url: "{{ kops_download_path }}"
-    dest: /usr/local/bin/kops
+    dest: "{{ kops_path }}"
     owner: root
     group: root
     mode: 0755
