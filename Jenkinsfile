@@ -245,7 +245,7 @@ node {
                     cd base-python-image
                     docker build $dockerCacheArg -t "legion/base-python-image:${Globals.buildVersion}" ${Globals.dockerLabels} .
                     """
-                'Upload Legion to local PyPi repo':{
+                },  'Upload Legion to local PyPi repo':{
                     sh """
                     twine upload -r ${params.LocalPyPiDistributionTargetName} legion/dist/legion-${Globals.buildVersion}.*
                     twine upload -r ${params.LocalPyPiDistributionTargetName} legion_airflow/dist/legion_airflow-${Globals.buildVersion}.*
