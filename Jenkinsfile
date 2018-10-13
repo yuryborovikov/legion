@@ -310,7 +310,7 @@ node {
                     """
                 }
             )
-            
+
             stage('Push images to Docker Hub'){
                    'Upload Grafana Docker Image':{
                     UploadDockerImage('k8s-grafana')
@@ -329,7 +329,7 @@ node {
                 }, 'Upload Fluentd Docker image': {
                     UploadDockerImage('k8s-fluentd')
                 }
-            )
+            }
 
             if (params.StableRelease) {
                 stage('Update Legion version string'){
