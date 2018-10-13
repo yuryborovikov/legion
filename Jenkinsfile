@@ -245,8 +245,7 @@ node {
                     cd base-python-image
                     docker build $dockerCacheArg -t "legion/base-python-image:${Globals.buildVersion}" ${Globals.dockerLabels} .
                     """
-                    UploadDockerImage('base-python-image')
-                }, 'Upload Legion to local PyPi repo':{
+                'Upload Legion to local PyPi repo':{
                     sh """
                     twine upload -r ${params.LocalPyPiDistributionTargetName} legion/dist/legion-${Globals.buildVersion}.*
                     twine upload -r ${params.LocalPyPiDistributionTargetName} legion_airflow/dist/legion_airflow-${Globals.buildVersion}.*
@@ -317,7 +316,9 @@ node {
                 }
             )
             parallel (
-                'Upload Grafana Docker Image':{
+                   'Upload Python Docker image':{
+                    UploadDockerImage('base-python-image')
+                }, 'Upload Grafana Docker Image':{
                     UploadDockerImage('k8s-grafana')
                 }, 'Upload Edge Docker Image':{
                     UploadDockerImage('k8s-edge')
