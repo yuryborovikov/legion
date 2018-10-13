@@ -311,24 +311,22 @@ node {
                 }
             )
 
-            stage('Push images to Docker Hub'){
-                   'Upload Grafana Docker Image': {
-                    UploadDockerImage('k8s-grafana')
-                }, 'Upload Edge Docker Image': {
-                    UploadDockerImage('k8s-edge')
-                }, 'Upload Jenkins Docker image': {
-                    UploadDockerImage('k8s-jenkins')
-                }, 'Upload Bare model 1': {
-                    UploadDockerImage('test-bare-model-api-model-1')
-                }, 'Upload Bare model 2': {
-                    UploadDockerImage('test-bare-model-api-model-2')
-                }, 'Upload Edi Docker image': {
-                    UploadDockerImage('k8s-edi')
-                }, 'Upload Airflow Docker image': {
-                    UploadDockerImage('k8s-airflow')
-                }, 'Upload Fluentd Docker image': {
-                    UploadDockerImage('k8s-fluentd')
-                }
+               'Upload Grafana Docker Image': {
+                UploadDockerImage('k8s-grafana')
+            }, 'Upload Edge Docker Image': {
+                UploadDockerImage('k8s-edge')
+            }, 'Upload Jenkins Docker image': {
+                UploadDockerImage('k8s-jenkins')
+            }, 'Upload Bare model 1': {
+                UploadDockerImage('test-bare-model-api-model-1')
+            }, 'Upload Bare model 2': {
+                UploadDockerImage('test-bare-model-api-model-2')
+            }, 'Upload Edi Docker image': {
+                UploadDockerImage('k8s-edi')
+            }, 'Upload Airflow Docker image': {
+                UploadDockerImage('k8s-airflow')
+            }, 'Upload Fluentd Docker image': {
+                UploadDockerImage('k8s-fluentd')
             }
 
             if (params.StableRelease) {
