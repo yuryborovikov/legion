@@ -298,20 +298,31 @@ def info():
 @blueprint.route(build_blueprint_url(EDI_GENERATE_TOKEN), methods=['GET'])
 @legion.http.provide_json_response
 @legion.http.authenticate(authenticate)
-def generate_token():
+@legion.http.populate_fields(expiration_date=str)
+def generate_token(expiration_date):
     """
     Generate JWT token
 
+    :param expiration_date: (Optional) Token expiration date in ISO format
+    :type expiration_date:
     :return: dict -- state of cluster
     """
     jwt_secret = app.config['JWT_CONFIG']['jwt.secret']
     jwt_exp_date = None
-    if 'jwt.exp.datetime' in app.config['JWT_CONFIG']:
+
+    if 'jwt.exp.datetime' in app.config['JWT_CONFIG']:  # Load expiration datetime from config
         try:
             jwt_exp_date = datetime.strptime(app.config['JWT_CONFIG']['jwt.exp.datetime'], "%Y-%m-%dT%H:%M:%S")
         except ValueError:
             pass
-    if not jwt_exp_date or jwt_exp_date < datetime.now():
+
+    if expiration_date:  # Load expiration datetime from parameter
+        try:
+            jwt_exp_date = datetime.strptime(expiration_date, "%Y-%m-%dT%H:%M:%S")
+        except ValueError:
+            pass
+
+    if not jwt_exp_date or jwt_exp_date < datetime.now():  # Check if expiration datetime, otherwise take default
         jwt_life_length = timedelta(minutes=int(app.config['JWT_CONFIG']['jwt.length.minutes']))
         jwt_exp_date = datetime.utcnow() + jwt_life_length
 

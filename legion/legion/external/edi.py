@@ -228,15 +228,19 @@ class EdiClient:
 
         return self.parse_deployments(self._query(legion.edi.server.EDI_SCALE, action='POST', payload=payload))
 
-    def get_token(self, version=None):
+    def get_token(self, expiration_date=None, version=None):
         """
         Get API token
 
+        :param expiration_date: (Optional) Token expiration date, date from secret is used by default
+        :type expiration_date: datetime
         :param version: (Optional) model version
         :type version: str
         :return: str -- return API Token
         """
         payload = {}
+        if expiration_date:
+            payload['expiration_date'] = expiration_date.isoformat()
         if version:
             payload['version'] = version
 
