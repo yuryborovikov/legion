@@ -238,14 +238,14 @@ node {
                     }
                 }
             )
-            
+
             parallel(
-                'Upload Legion to local PyPi repo':{
+                'Build Base Docker image':{
                     sh """
-                    twine upload -r ${params.LocalPyPiDistributionTargetName} legion/dist/legion-${Globals.buildVersion}.*
-                    twine upload -r ${params.LocalPyPiDistributionTargetName} legion_airflow/dist/legion_airflow-${Globals.buildVersion}.*
-                    twine upload -r ${params.LocalPyPiDistributionTargetName} legion_test/dist/legion_test-${Globals.buildVersion}.*
+                    cd base-python-image
+                    docker build -t "legion/base-python-image:${Globals.buildVersion}" .
                     """
+                    UploadDockerImage('base-python-image')
                 }
             )
 
@@ -310,14 +310,9 @@ node {
                     """
                 }
             )
-            parallel (
-                'Build Base Docker image':{
-                    sh """
-                    cd base-python-image
-                    docker build $dockerCacheArg -t "legion/base-python-image:${Globals.buildVersion}" ${Globals.dockerLabels} .
-                    """
-                    UploadDockerImage('base-python-image')
-                }, 'Upload Grafana Docker Image':{
+            
+            stage('Push images to Docker Hub'){
+                   'Upload Grafana Docker Image':{
                     UploadDockerImage('k8s-grafana')
                 }, 'Upload Edge Docker Image':{
                     UploadDockerImage('k8s-edge')
@@ -333,14 +328,6 @@ node {
                     UploadDockerImage('k8s-airflow')
                 }, 'Upload Fluentd Docker image': {
                     UploadDockerImage('k8s-fluentd')
-                }, 'Upload Legion to PyPi repo': {
-                    if (params.UploadLegionPackage){
-                        sh """
-                        twine upload -r ${params.PyPiDistributionTargetName} legion/dist/legion-${Globals.buildVersion}.*
-                        """
-                    } else {
-                        print("Skipping package upload")
-                    }
                 }
             )
 
