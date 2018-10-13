@@ -312,9 +312,9 @@ node {
             )
 
             stage('Push images to Docker Hub'){
-                   'Upload Grafana Docker Image':{
+                   'Upload Grafana Docker Image': {
                     UploadDockerImage('k8s-grafana')
-                }, 'Upload Edge Docker Image':{
+                }, 'Upload Edge Docker Image': {
                     UploadDockerImage('k8s-edge')
                 }, 'Upload Jenkins Docker image': {
                     UploadDockerImage('k8s-jenkins')
