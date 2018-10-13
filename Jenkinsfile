@@ -6,36 +6,21 @@ class Globals {
     static String dockerLabels = null
 }
 
-def UploadDockerImageLocal(imageName) {
-    sh """
-    docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerRegistry}/${imageName}:${Globals.buildVersion}
-    docker push ${params.DockerRegistry}/${imageName}:${Globals.buildVersion}
-    """
-}
-
-def UploadDockerImagePublic(imageName) {
-    sh """
-    # Push stable image to local registry
-    docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerRegistry}/${imageName}:${Globals.buildVersion}
-    docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerRegistry}/${imageName}:latest
-    docker push ${params.DockerRegistry}/${imageName}:${Globals.buildVersion}
-    docker push ${params.DockerRegistry}/${imageName}:latest
-    # Push stable image to DockerHub
-    docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerHubRegistry}/${imageName}:${Globals.buildVersion}
-    docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerHubRegistry}/${imageName}:latest
-    docker push ${params.DockerHubRegistry}/${imageName}:${Globals.buildVersion}
-    docker push ${params.DockerHubRegistry}/${imageName}:latest
-    """
-}
-
 def UploadDockerImage(imageName) {
-    if (params.StableRelease) {
-         UploadDockerImagePublic(imageName)
-    } else {
-        UploadDockerImageLocal(imageName)
+    withCredentials([[
+        $class: 'UsernamePasswordMultiBinding',
+        credentialsId: 'dockerhub-repository',
+        usernameVariable: 'USERNAME',
+        passwordVariable: 'PASSWORD']]) {
+        sh """
+        # Push stable image to DockerHub
+        docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerHubRegistry}/${imageName}:${Globals.buildVersion}
+        docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerHubRegistry}/${imageName}:latest
+        docker push ${params.DockerHubRegistry}/${imageName}:${Globals.buildVersion}
+        docker push ${params.DockerHubRegistry}/${imageName}:latest
+        """
     }
 }
-
 
 node {
     try {
@@ -399,18 +384,14 @@ node {
         }
     }
     catch (e) {
-        // If there was an exception thrown, the build failed
         currentBuild.result = "FAILED"
         throw e
     } finally {
-        // Success or failure, always send notifications
         notifyBuild(currentBuild.result)
     }
 
     print("Build version ${Globals.buildVersion}")
 }
-
-
 
 def notifyBuild(String buildStatus = 'STARTED') {
     // build status of null means successful
