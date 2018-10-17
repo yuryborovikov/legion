@@ -195,6 +195,71 @@ class Airflow:
                     break
         return failed_dags
 
+    def get_airflow_dag_state(self, dag_id):
+        """
+        Get airflow dag state points
+        :rtype dict
+        :return: A dict with dag states
+        """
+        data = self._get('airflow/task_stats', use_rest_api_root=False)
+        dag_tasks = data.items()[dag_id]
+        success_count = dag_tasks[0]['count']
+        running_count = dag_tasks[1]['count']
+        failed_count = dag_tasks[2]['count']
+        print('Detected DAG {!r}. Success tasks count: {!r}, Running tasks count: {!r}, Failed tasks count: {!r}'
+              .format(dag_id, success_count, running_count, failed_count))
+        return {'success': success_count, 'running': running_count, 'failed': failed_count}
+
+    def wait_dag_finished(self, dag_id, timeout=120, sleep=5):
+        """
+        Wait airflow dag finished
+        :rtype dict
+        :return: A dict with dag states
+        """
+        timeout = int(timeout)
+        sleep = int(sleep)
+        start = time.time()
+        time.sleep(sleep)
+
+        while True:
+            running_count = self.get_airflow_dag_state(dag_id)['running']
+            elapsed = time.time() - start
+            if running_count == 0:
+                print('Dag {} is not running after {} seconds'
+                      .format(dag_id, elapsed))
+                return
+            elif elapsed > timeout > 0:
+                raise Exception('Dag {} did not finish after {} seconds wait'.format(dag_id, timeout))
+            else:
+                print('Dag {} is still running after {} seconds'
+                      .format(dag_id, elapsed))
+                time.sleep(sleep)
+
+    def wait_dag_is_running(self, dag_id, timeout=60, sleep=5):
+        """
+        Wait airflow dag finished
+        :rtype dict
+        :return: A dict with dag states
+        """
+        timeout = int(timeout)
+        sleep = int(sleep)
+        start = time.time()
+        time.sleep(sleep)
+
+        while True:
+            running_count = self.get_airflow_dag_state(dag_id)['running']
+            elapsed = time.time() - start
+            if running_count > 0:
+                print('Dag {} is running after {} seconds'
+                      .format(dag_id, elapsed))
+                return
+            elif elapsed > timeout > 0:
+                raise Exception('Dag {} did not finish after {} seconds wait'.format(dag_id, timeout))
+            else:
+                print('Dag {} iss not running after {} seconds'
+                      .format(dag_id, elapsed))
+                time.sleep(sleep)
+
     def _find_lines_in_stdout(self, response, first_pattern=SIMPLE_ROW, second_pattern=None):
         obj = response
         if type(obj) != str and 'output' in obj:

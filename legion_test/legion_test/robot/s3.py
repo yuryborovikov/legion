@@ -128,4 +128,3 @@ class S3:
         :return: str -- path
         """
         return '/'.join(item.strip('/ ') for item in items)
-
