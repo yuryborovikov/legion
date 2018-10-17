@@ -61,7 +61,7 @@ pipeline {
                             if (params.PushGitTag){
                                 print('Set Release tag')
                                 sh """
-                                if [ `git tag |grep ${params.ReleaseVersion}` ]; then
+                                if [ `git tag |grep -w ${params.ReleaseVersion}` ]; then
                                     if [ ${params.ForceTagPush} = "true" ]; then
                                         echo 'Removing existing git tag'
                                         git tag -d ${params.ReleaseVersion}
@@ -225,11 +225,44 @@ EOL
                             twine upload -r ${params.LocalPyPiDistributionTargetName} '/src/legion_test/dist/legion_test-${Globals.buildVersion}.*'
                             twine upload -r ${params.LocalPyPiDistributionTargetName} '/src/legion_airflow/dist/legion_airflow-${Globals.buildVersion}.*'
                             """
+
+                            if (params.StableRelease) {
+                                stage('Update Legion package to pypi.org'){
+                                    if (params.UpdateVersionString){
+                                        withCredentials([[
+                                        $class: 'UsernamePasswordMultiBinding',
+                                        credentialsId: 'pypi-repository',
+                                        usernameVariable: 'USERNAME',
+                                        passwordVariable: 'PASSWORD']]) {
+                                            sh """cat > /tmp/.pypirc << EOL
+[distutils]
+index-servers =
+  ${params.PyPiDistributionTargetName}
+
+[${params.testPyPiDistributionTargetName}]
+repository=https://test.pypi.org/legacy/
+username=${env.USERNAME}
+password=${env.PASSWORD}
+
+[${params.PublicPyPiDistributionTargetName}]
+repository=https://upload.pypi.org/legacy/
+username=${env.USERNAME}
+password=${env.PASSWORD}
+EOL
+"""
+                            }
+                                            sh """
+                                            twine upload -r ${params.PyPiDistributionTargetName} '/src/legion/dist/legion-${Globals.buildVersion}.*'
+                                            """
+                                    } else {
+                                        print("Skipping package upload")
+                                    }
+
+                                }
+                            }
                         }
                     }
                 }
-            }
-        }
         stage('Build docs') {
             agent { 
                 docker {
