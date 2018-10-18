@@ -288,14 +288,16 @@ node {
                 }
             )
 
-            UploadDockerImage('k8s-grafana')
-            UploadDockerImage('k8s-edge')
-            UploadDockerImage('k8s-jenkins')
-            UploadDockerImage('test-bare-model-api-model-1')
-            UploadDockerImage('test-bare-model-api-model-2')
-            UploadDockerImage('test-bare-model-api-model-3')
-            UploadDockerImage('k8s-edi')
-            UploadDockerImage('k8s-airflow')
+            stage('Upload images') {
+                UploadDockerImage('k8s-grafana')
+                UploadDockerImage('k8s-edge')
+                UploadDockerImage('k8s-jenkins')
+                UploadDockerImage('test-bare-model-api-model-1')
+                UploadDockerImage('test-bare-model-api-model-2')
+                UploadDockerImage('test-bare-model-api-model-3')
+                UploadDockerImage('k8s-edi')
+                UploadDockerImage('k8s-airflow')
+            }
             
             if (params.UploadLegionPackage) {
                     sh """
