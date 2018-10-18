@@ -127,13 +127,10 @@ class TestK8SPropertiesStorage(unittest2.TestCase):
                 events.append((event, new_data))
 
         with legion_test.utils.ContextThread(listener):
-            LOGGER.debug('Waiting before updating')
-
-            self.assertTrue(legion_test.utils.wait_until(lambda: len(events) > 0, 1, 5))
-            self.assertTupleEqual(events[0], (legion.k8s.EVENT_ADDED, {key: first_value}))
-
             storage_to_write[key] = second_value
             storage_to_write.save()
+
+            LOGGER.info('Checking update')
 
             self.assertTrue(legion_test.utils.wait_until(lambda: len(events) > 1, 1, 5))
             self.assertTupleEqual(events[1], (legion.k8s.EVENT_MODIFIED, {key: second_value}))
@@ -163,13 +160,10 @@ class TestK8SPropertiesStorage(unittest2.TestCase):
                 events.append((event, new_data))
 
         with legion_test.utils.ContextThread(listener):
-            LOGGER.debug('Waiting before updating')
-
-            self.assertTrue(legion_test.utils.wait_until(lambda: len(events) > 0, 1, 5))
-            self.assertTupleEqual(events[0], (legion.k8s.EVENT_ADDED, {key: first_value}))
-
             storage_to_write[key] = second_value
             storage_to_write.save()
+
+            LOGGER.info('Checking update')
 
             self.assertTrue(legion_test.utils.wait_until(lambda: len(events) > 1, 1, 5))
             self.assertTupleEqual(events[1], (legion.k8s.EVENT_MODIFIED, {key: second_value}))
