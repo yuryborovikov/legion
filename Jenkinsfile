@@ -6,21 +6,36 @@ class Globals {
     static String dockerLabels = null
 }
 
+def UploadDockerImageLocal(imageName) {
+    sh """
+    docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerRegistry}/${imageName}:${Globals.buildVersion}
+    docker push ${params.DockerRegistry}/${imageName}:${Globals.buildVersion}
+    """
+}
+
+def UploadDockerImagePublic(imageName) {
+    sh """
+    # Push stable image to local registry
+    docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerRegistry}/${imageName}:${Globals.buildVersion}
+    docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerRegistry}/${imageName}:latest
+    docker push ${params.DockerRegistry}/${imageName}:${Globals.buildVersion}
+    docker push ${params.DockerRegistry}/${imageName}:latest
+    # Push stable image to DockerHub
+    docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerHubRegistry}/${imageName}:${Globals.buildVersion}
+    docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerHubRegistry}/${imageName}:latest
+    docker push ${params.DockerHubRegistry}/${imageName}:${Globals.buildVersion}
+    docker push ${params.DockerHubRegistry}/${imageName}:latest
+    """
+}
+
 def UploadDockerImage(imageName) {
-    withCredentials([[
-        $class: 'UsernamePasswordMultiBinding',
-        credentialsId: 'dockerhub-repository',
-        usernameVariable: 'USERNAME',
-        passwordVariable: 'PASSWORD']]) {
-        sh """
-        # Push stable image to DockerHub
-        docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerHubRegistry}/${imageName}:${Globals.buildVersion}
-        docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerHubRegistry}/${imageName}:latest
-        docker push ${params.DockerHubRegistry}/${imageName}:${Globals.buildVersion}
-        docker push ${params.DockerHubRegistry}/${imageName}:latest
-        """
+    if (params.StableRelease) {
+         UploadDockerImagePublic(imageName)
+    } else {
+        UploadDockerImageLocal(imageName)
     }
 }
+
 
 node {
     try {
@@ -238,14 +253,20 @@ node {
                     }
                 }
             )
-
+            
             parallel(
-                'Build Base Docker image': {
+                'Build Base Docker image':{
                     sh """
                     cd base-python-image
-                    docker build -t "legion/base-python-image:${Globals.buildVersion}" .
+                    docker build $dockerCacheArg -t "legion/base-python-image:${Globals.buildVersion}" ${Globals.dockerLabels} .
                     """
                     UploadDockerImage('base-python-image')
+                }, 'Upload Legion to local PyPi repo':{
+                    sh """
+                    twine upload -r ${params.LocalPyPiDistributionTargetName} legion/dist/legion-${Globals.buildVersion}.*
+                    twine upload -r ${params.LocalPyPiDistributionTargetName} legion_airflow/dist/legion_airflow-${Globals.buildVersion}.*
+                    twine upload -r ${params.LocalPyPiDistributionTargetName} legion_test/dist/legion_test-${Globals.buildVersion}.*
+                    """
                 }
             )
 
@@ -283,6 +304,11 @@ node {
                     cd k8s/test-bare-model-api/model-2
                     docker build $dockerCacheArg --build-arg version="${Globals.buildVersion}" -t legion/test-bare-model-api-model-2:${Globals.buildVersion} ${Globals.dockerLabels} .
                     """
+                }, 'Build Bare model 3': {
+                    sh """
+                    cd k8s/test-bare-model-api/model-3
+                    docker build --build-arg version="${Globals.buildVersion}" -t legion/test-bare-model-api-model-3:${Globals.buildVersion} ${Globals.dockerLabels} .
+                    """
                 }, 'Build Edi Docker image': {
                     sh """
                     cd k8s/edi
@@ -310,17 +336,35 @@ node {
                     """
                 }
             )
-
-            stage('Push images to Docker Hub'){
-                UploadDockerImage('k8s-grafana')
-                UploadDockerImage('k8s-edge')
-                UploadDockerImage('k8s-jenkins')
-                UploadDockerImage('test-bare-model-api-model-1')
-                UploadDockerImage('test-bare-model-api-model-2')
-                UploadDockerImage('k8s-edi')
-                UploadDockerImage('k8s-airflow')
-                UploadDockerImage('k8s-fluentd')
-            }
+            parallel (
+                'Upload Grafana Docker Image':{
+                    UploadDockerImage('k8s-grafana')
+                }, 'Upload Edge Docker Image':{
+                    UploadDockerImage('k8s-edge')
+                }, 'Upload Jenkins Docker image': {
+                    UploadDockerImage('k8s-jenkins')
+                }, 'Upload Bare model 1': {
+                    UploadDockerImage('test-bare-model-api-model-1')
+                }, 'Upload Bare model 2': {
+                    UploadDockerImage('test-bare-model-api-model-2')
+                }, 'Upload Bare model 3': {
+                    UploadDockerImage('test-bare-model-api-model-3')
+                }, 'Upload Edi Docker image': {
+                    UploadDockerImage('k8s-edi')
+                }, 'Upload Airflow Docker image': {
+                    UploadDockerImage('k8s-airflow')
+                }, 'Upload Fluentd Docker image': {
+                    UploadDockerImage('k8s-fluentd')
+                }, 'Upload Legion to PyPi repo': {
+                    if (params.UploadLegionPackage){
+                        sh """
+                        twine upload -r ${params.PyPiDistributionTargetName} legion/dist/legion-${Globals.buildVersion}.*
+                        """
+                    } else {
+                        print("Skipping package upload")
+                    }
+                }
+            )
 
             if (params.StableRelease) {
                 stage('Update Legion version string'){
@@ -362,14 +406,18 @@ node {
         }
     }
     catch (e) {
+        // If there was an exception thrown, the build failed
         currentBuild.result = "FAILED"
         throw e
     } finally {
+        // Success or failure, always send notifications
         notifyBuild(currentBuild.result)
     }
 
     print("Build version ${Globals.buildVersion}")
 }
+
+
 
 def notifyBuild(String buildStatus = 'STARTED') {
     // build status of null means successful
