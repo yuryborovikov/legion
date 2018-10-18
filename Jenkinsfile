@@ -296,15 +296,14 @@ node {
             UploadDockerImage('test-bare-model-api-model-3')
             UploadDockerImage('k8s-edi')
             UploadDockerImage('k8s-airflow')
-            'Upload Legion to PyPi repo': {
-                    if (params.UploadLegionPackage){
-                        sh """
-                        twine upload -r ${params.PyPiDistributionTargetName} legion/dist/legion-${Globals.buildVersion}.*
-                        """
-                    } else {
-                        print("Skipping package upload")
-                    }
-                }
+            
+            if (params.UploadLegionPackage) {
+                    sh """
+                    twine upload -r ${params.PyPiDistributionTargetName} legion/dist/legion-${Globals.buildVersion}.*
+                    """
+                } else {
+                    print("Skipping package upload")
+            }
 
             if (params.StableRelease) {
                 stage('Update Legion version string'){
