@@ -6,14 +6,7 @@ class Globals {
     static String dockerLabels = null
 }
 
-def UploadDockerImageLocal(imageName) {
-    sh """
-    docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerRegistry}/${imageName}:${Globals.buildVersion}
-    docker push ${params.DockerRegistry}/${imageName}:${Globals.buildVersion}
-    """
-}
-
-def UploadDockerImagePublic(imageName) {
+def UploadDockerImage(imageName) {
     sh """
     # Push stable image to local registry
     docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerRegistry}/${imageName}:${Globals.buildVersion}
@@ -27,15 +20,6 @@ def UploadDockerImagePublic(imageName) {
     docker push ${params.DockerHubRegistry}/${imageName}:latest
     """
 }
-
-def UploadDockerImage(imageName) {
-    if (params.StableRelease) {
-         UploadDockerImagePublic(imageName)
-    } else {
-        UploadDockerImageLocal(imageName)
-    }
-}
-
 
 node {
     try {
