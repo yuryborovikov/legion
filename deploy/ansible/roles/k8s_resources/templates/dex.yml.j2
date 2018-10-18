@@ -16,6 +16,7 @@ staticClients:
   - 'https://auth.{{ cluster_name }}/oauth2/callback'
   - 'https://jenkins.{{ cluster_name }}/securityRealm/finishLogin'
   - 'https://auth.{{ cluster_name }}/callback/{{ env_name }}'
+  - 'http://dlab.{{ cluster_name }}'
   name: '{{ cluster_name }} Cluster'
 
 staticPasswords: {{ dex.config.staticPasswords | to_json }}
