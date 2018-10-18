@@ -8,11 +8,6 @@ class Globals {
 
 def UploadDockerImage(imageName) {
     sh """
-    # Push stable image to local registry
-    docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerRegistry}/${imageName}:${Globals.buildVersion}
-    docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerRegistry}/${imageName}:latest
-    docker push ${params.DockerRegistry}/${imageName}:${Globals.buildVersion}
-    docker push ${params.DockerRegistry}/${imageName}:latest
     # Push stable image to DockerHub
     docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerHubRegistry}/${imageName}:${Globals.buildVersion}
     docker tag legion/${imageName}:${Globals.buildVersion} ${params.DockerHubRegistry}/${imageName}:latest
