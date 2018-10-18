@@ -287,26 +287,16 @@ node {
                     """
                 }
             )
-            parallel (
-                'Upload Grafana Docker Image':{
-                    UploadDockerImage('k8s-grafana')
-                }, 'Upload Edge Docker Image':{
-                    UploadDockerImage('k8s-edge')
-                }, 'Upload Jenkins Docker image': {
-                    UploadDockerImage('k8s-jenkins')
-                }, 'Upload Bare model 1': {
-                    UploadDockerImage('test-bare-model-api-model-1')
-                }, 'Upload Bare model 2': {
-                    UploadDockerImage('test-bare-model-api-model-2')
-                }, 'Upload Bare model 3': {
-                    UploadDockerImage('test-bare-model-api-model-3')
-                }, 'Upload Edi Docker image': {
-                    UploadDockerImage('k8s-edi')
-                }, 'Upload Airflow Docker image': {
-                    UploadDockerImage('k8s-airflow')
-                }, 'Upload Fluentd Docker image': {
-                    UploadDockerImage('k8s-fluentd')
-                }, 'Upload Legion to PyPi repo': {
+
+            UploadDockerImage('k8s-grafana')
+            UploadDockerImage('k8s-edge')
+            UploadDockerImage('k8s-jenkins')
+            UploadDockerImage('test-bare-model-api-model-1')
+            UploadDockerImage('test-bare-model-api-model-2')
+            UploadDockerImage('test-bare-model-api-model-3')
+            UploadDockerImage('k8s-edi')
+            UploadDockerImage('k8s-airflow')
+            'Upload Legion to PyPi repo': {
                     if (params.UploadLegionPackage){
                         sh """
                         twine upload -r ${params.PyPiDistributionTargetName} legion/dist/legion-${Globals.buildVersion}.*
@@ -315,7 +305,6 @@ node {
                         print("Skipping package upload")
                     }
                 }
-            )
 
             if (params.StableRelease) {
                 stage('Update Legion version string'){
