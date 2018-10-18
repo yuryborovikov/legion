@@ -223,34 +223,6 @@ node {
                     archiveArtifacts 'legion_airflow/pylint.log'
                     warnings canComputeNew: false, canResolveRelativePaths: false, categoriesPattern: '', defaultEncoding: '',  excludePattern: '', healthy: '', includePattern: '', messagesPattern: '', parserConfigurations: [[   parserName: 'PyLint', pattern: 'legion_airflow/pylint.log']], unHealthy: ''
 
-                }, 'Build Jenkins plugin': {
-                /// Jenkins plugin to be used in Jenkins Docker container only
-                    sh """
-                    mvn -f k8s/jenkins/legion-jenkins-plugin/pom.xml clean
-                    mvn -f k8s/jenkins/legion-jenkins-plugin/pom.xml versions:set -DnewVersion=${Globals.buildVersion}
-                    mvn -f k8s/jenkins/legion-jenkins-plugin/pom.xml install
-                    """
-                    archiveArtifacts 'k8s/jenkins/legion-jenkins-plugin/target/legion-jenkins-plugin.hpi'
-
-                    withCredentials([[
-                         $class: 'UsernamePasswordMultiBinding',
-                         credentialsId: 'nexus-local-repository',
-                         usernameVariable: 'USERNAME',
-                         passwordVariable: 'PASSWORD']]) {
-                        sh """
-                        curl -v -u $USERNAME:$PASSWORD \
-                        --upload-file k8s/jenkins/legion-jenkins-plugin/target/legion-jenkins-plugin.hpi \
-                        ${params.JenkinsPluginsRepositoryStore}/${Globals.buildVersion}/legion-jenkins-plugin.hpi
-                        """
-
-                        if (params.StableRelease){
-                            sh """
-                            curl -v -u $USERNAME:$PASSWORD \
-                            --upload-file k8s/jenkins/legion-jenkins-plugin/target/legion-jenkins-plugin.hpi \
-                            ${params.JenkinsPluginsRepositoryStore}/latest/legion-jenkins-plugin.hpi
-                            """
-                        }
-                    }
                 }
             )
             
