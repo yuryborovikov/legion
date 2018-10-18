@@ -54,8 +54,8 @@ class TestK8SPropertiesStorage(unittest2.TestCase):
         """
         logging.basicConfig(level=logging.DEBUG)
 
-        legion.k8s.CONNECTION_CONTEXT = VARIABLES['CLUSTER_NAME']
-        LOGGER.info('K8S context has been set to {}'.format(legion.k8s.CONNECTION_CONTEXT))
+        legion.k8s.utils.CONNECTION_CONTEXT = VARIABLES['CLUSTER_NAME']
+        LOGGER.info('K8S context has been set to {}'.format(legion.k8s.utils.CONNECTION_CONTEXT))
 
         client = legion.k8s.utils.build_client()
         core_api = kubernetes.client.CoreV1Api(client)
